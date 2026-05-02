@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="th">
   <head>
     <link rel="icon" type="image/png" href="img/LG02.png" />
@@ -1176,10 +1176,25 @@
           padding: 0 16px;
         }
         .modal {
-          padding: 24px;
+          padding: 20px 16px;
+          width: 95% !important;
+          max-width: 95vw !important;
+          max-height: 90vh !important;
+          overflow-y: auto !important;
+          margin: 5vh auto;
+        }
+        .modal-overlay {
+          align-items: flex-start;
+          padding-top: 5vh;
         }
         .stats-bar {
           margin: 0 16px;
+        }
+        .chart-wrap {
+          height: 180px !important;
+        }
+        .vip-card {
+          transform: none !important;
         }
       }
       @media (max-width: 480px) {
@@ -1191,6 +1206,56 @@
           font-size: 14px;
         }
       }
+
+      /* VIP TIER BADGES */
+      .badge-free { background: rgba(136,153,187,0.15); color: #8899bb; border: 1px solid rgba(136,153,187,0.3); }
+      .badge-vip-month { background: rgba(41,121,255,0.18); color: #5b9fff; border: 1px solid rgba(41,121,255,0.4); }
+      .badge-vip-year { background: rgba(245,200,66,0.18); color: #f5c842; border: 1px solid rgba(245,200,66,0.4); }
+
+      /* SUPPORT / RESISTANCE LINES */
+      .sr-box {
+        display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0;
+      }
+      .sr-item {
+        flex: 1; min-width: 120px; padding: 10px 14px;
+        border-radius: 10px; text-align: center;
+      }
+      .sr-support { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.25); }
+      .sr-resistance { background: rgba(255,23,68,0.08); border: 1px solid rgba(255,23,68,0.25); }
+      .sr-buy { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.25); }
+      .sr-sell { background: rgba(245,200,66,0.08); border: 1px solid rgba(245,200,66,0.25); }
+      .sr-stop { background: rgba(255,23,68,0.08); border: 1px solid rgba(255,23,68,0.25); }
+      .sr-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+      .sr-value { font-family: "Share Tech Mono", monospace; font-size: 16px; font-weight: 700; }
+
+      /* STOCK NEWS IN MODAL */
+      .stock-news-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--navy-border); }
+      .stock-news-section .news-item { padding: 10px 0; }
+
+      /* VIP REQUEST STATUS */
+      .vip-status-box {
+        padding: 16px; border-radius: 12px; margin-bottom: 20px;
+        background: rgba(245,200,66,0.06); border: 1px solid rgba(245,200,66,0.2);
+        text-align: center;
+      }
+
+      /* ADMIN VIP REQUESTS */
+      .req-card {
+        background: var(--navy-card); border: 1px solid var(--navy-border);
+        border-radius: 12px; padding: 16px; margin-bottom: 12px;
+        display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      }
+      .req-info { flex: 1; min-width: 180px; }
+      .req-actions { display: flex; gap: 8px; flex-shrink: 0; }
+      .btn-approve { background: rgba(0,230,118,0.15); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+      .btn-approve:hover { background: rgba(0,230,118,0.25); }
+      .btn-reject { background: rgba(255,23,68,0.12); color: var(--red); border: 1px solid rgba(255,23,68,0.25); }
+      .btn-reject:hover { background: rgba(255,23,68,0.22); }
+
+      /* ADMIN EXTENDED STATS */
+      .admin-stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+      .admin-mini-stat { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 10px; padding: 14px 18px; flex: 1; min-width: 130px; }
+      .admin-mini-val { font-size: 22px; font-weight: 700; }
 
       /* SCROLLBAR */
       ::-webkit-scrollbar {
@@ -1740,162 +1805,105 @@
 
     <!-- STOCK DETAIL MODAL -->
     <div class="modal-overlay" id="stockDetailModal">
-      <div class="modal" style="max-width: 640px">
+      <div class="modal" style="max-width: 640px; width: 95%; max-height: 90vh; overflow-y: auto;">
         <button class="modal-close" onclick="closeModal('stockDetailModal')">
           <i class="fas fa-times"></i>
         </button>
-        <div
-          style="
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 16px;
-          "
-        >
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
           <div>
-            <div style="display: flex; align-items: center; gap: 10px">
-              <h2
-                id="sdSymbol"
-                style="
-                  font-family: &quot;Rajdhani&quot;;
-                  font-size: 28px;
-                  color: var(--gold);
-                "
-              >
-                -
-              </h2>
-              <button class="fav-btn" id="sdFavBtn" onclick="toggleFavorite()">
-                <i class="fas fa-heart"></i>
-              </button>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <h2 id="sdSymbol" style="font-family:'Rajdhani'; font-size:28px; color:var(--gold);">-</h2>
+              <button class="fav-btn" id="sdFavBtn" onclick="toggleFavorite()"><i class="fas fa-heart"></i></button>
+              <span id="sdUserBadge" class="badge badge-free" style="display:none;"></span>
             </div>
-            <p
-              id="sdName"
-              style="color: var(--text-muted); margin: 0; font-size: 14px"
-            >
-              -
-            </p>
+            <p id="sdName" style="color:var(--text-muted); margin:0; font-size:14px;">-</p>
           </div>
-          <div style="text-align: right">
-            <div
-              id="sdPrice"
-              style="
-                font-family: &quot;Share Tech Mono&quot;;
-                font-size: 28px;
-                font-weight: 700;
-              "
-            >
-              -
-            </div>
-            <div id="sdChange" class="badge" style="margin-top: 4px">-</div>
+          <div style="text-align:right;">
+            <div id="sdPrice" style="font-family:'Share Tech Mono'; font-size:28px; font-weight:700;">-</div>
+            <div id="sdChange" class="badge" style="margin-top:4px;">-</div>
           </div>
         </div>
         <div class="chart-tabs">
-          <button
-            class="chart-tab active"
-            onclick="changeChartPeriod('1D', this)"
-          >
-            1D
-          </button>
-          <button class="chart-tab" onclick="changeChartPeriod('1W', this)">
-            1W
-          </button>
-          <button class="chart-tab" onclick="changeChartPeriod('1M', this)">
-            1M
-          </button>
-          <button class="chart-tab" onclick="changeChartPeriod('3M', this)">
-            3M
-          </button>
+          <button class="chart-tab active" onclick="changeChartPeriod('1D', this)">1D</button>
+          <button class="chart-tab" onclick="changeChartPeriod('1W', this)">1W</button>
+          <button class="chart-tab" onclick="changeChartPeriod('1M', this)">1M</button>
+          <button class="chart-tab" onclick="changeChartPeriod('3M', this)">3M</button>
         </div>
-        <div class="chart-wrap" style="height: 220px; margin-bottom: 16px">
+        <div class="chart-wrap" style="height:220px; margin-bottom:16px; position:relative;">
           <canvas id="stockDetailChart"></canvas>
+          <!-- Support / Resistance overlay labels -->
+          <div id="chartSRLabels" style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; gap:4px; font-size:11px; font-family:'Share Tech Mono';"></div>
         </div>
-        <div class="grid grid-2" style="margin-bottom: 16px">
-          <div class="card" style="padding: 14px">
-            <div class="card-title">
-              <i class="fas fa-robot"></i> AI วิเคราะห์
-            </div>
+
+        <!-- SR + Entry points -->
+        <div class="sr-box" id="srBox" style="display:none;">
+          <div class="sr-item sr-support">
+            <div class="sr-label">📗 แนวรับ</div>
+            <div class="sr-value" id="srSupportVal" style="color:var(--green);">-</div>
+          </div>
+          <div class="sr-item sr-resistance">
+            <div class="sr-label">📕 แนวต้าน</div>
+            <div class="sr-value" id="srResistanceVal" style="color:var(--red);">-</div>
+          </div>
+          <div class="sr-item sr-buy">
+            <div class="sr-label">🟢 จุดซื้อ</div>
+            <div class="sr-value" id="srBuyVal" style="color:var(--green);">-</div>
+          </div>
+          <div class="sr-item sr-sell">
+            <div class="sr-label">🟡 จุดขาย</div>
+            <div class="sr-value" id="srSellVal" style="color:var(--gold);">-</div>
+          </div>
+          <div class="sr-item sr-stop">
+            <div class="sr-label">🔴 Stop Loss</div>
+            <div class="sr-value" id="srStopVal" style="color:var(--red);">-</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:16px;">
+          <div class="card" style="padding:14px;">
+            <div class="card-title"><i class="fas fa-robot"></i> AI วิเคราะห์</div>
             <div id="sdAI">
-              <div style="text-align: center">
-                <div class="ai-score" id="aiScoreCircle" style="--pct: 0deg">
+              <div style="text-align:center;">
+                <div class="ai-score" id="aiScoreCircle" style="--pct:0deg;">
                   <div class="ai-score-inner">
                     <div class="ai-score-value" id="aiScoreVal">-</div>
                     <div class="ai-score-label">คะแนน</div>
                   </div>
                 </div>
-                <div
-                  id="aiSignal"
-                  class="rec-signal"
-                  style="margin-bottom: 8px"
-                >
-                  -
-                </div>
+                <div id="aiSignal" class="rec-signal" style="margin-bottom:8px;">-</div>
               </div>
-              <div class="indicator-row">
-                <span class="indicator-name">RSI (14)</span
-                ><span class="indicator-val" id="aiRSI">-</span>
-              </div>
-              <div class="indicator-row">
-                <span class="indicator-name">MACD</span
-                ><span class="indicator-val" id="aiMACD">-</span>
-              </div>
-              <div class="indicator-row">
-                <span class="indicator-name">EMA 20</span
-                ><span class="indicator-val" id="aiEMA">-</span>
-              </div>
-              <div class="indicator-row">
-                <span class="indicator-name">แนวรับ</span
-                ><span class="indicator-val" id="aiSupport">-</span>
-              </div>
-              <div class="indicator-row">
-                <span class="indicator-name">แนวต้าน</span
-                ><span class="indicator-val" id="aiResistance">-</span>
-              </div>
+              <div class="indicator-row"><span class="indicator-name">RSI (14)</span><span class="indicator-val" id="aiRSI">-</span></div>
+              <div class="indicator-row"><span class="indicator-name">MACD</span><span class="indicator-val" id="aiMACD">-</span></div>
+              <div class="indicator-row"><span class="indicator-name">EMA 20</span><span class="indicator-val" id="aiEMA">-</span></div>
+              <div class="indicator-row"><span class="indicator-name">แนวรับ</span><span class="indicator-val" id="aiSupport">-</span></div>
+              <div class="indicator-row"><span class="indicator-name">แนวต้าน</span><span class="indicator-val" id="aiResistance">-</span></div>
             </div>
           </div>
-          <div class="card" style="padding: 14px">
-            <div class="card-title">
-              <i class="fas fa-info-circle"></i> ข้อมูลหุ้น
-            </div>
-            <div class="indicator-row">
-              <span class="indicator-name">Open</span
-              ><span class="indicator-val" id="sdOpen">-</span>
-            </div>
-            <div class="indicator-row">
-              <span class="indicator-name">High</span
-              ><span
-                class="indicator-val"
-                id="sdHigh"
-                style="color: var(--green)"
-                >-</span
-              >
-            </div>
-            <div class="indicator-row">
-              <span class="indicator-name">Low</span
-              ><span class="indicator-val" id="sdLow" style="color: var(--red)"
-                >-</span
-              >
-            </div>
-            <div class="indicator-row">
-              <span class="indicator-name">Volume</span
-              ><span class="indicator-val" id="sdVolume">-</span>
-            </div>
-            <div style="margin-top: 14px">
-              <button
-                class="btn btn-glow"
-                style="width: 100%; margin-bottom: 8px"
-                onclick="addToPortfolioPrompt()"
-              >
-                <i class="fas fa-plus"></i> เพิ่มในพอร์ต
-              </button>
-              <button
-                class="btn btn-outline"
-                style="width: 100%"
-                onclick="addAlertPrompt()"
-              >
-                <i class="fas fa-bell"></i> ตั้งแจ้งเตือน
-              </button>
+          <div class="card" style="padding:14px;">
+            <div class="card-title"><i class="fas fa-info-circle"></i> ข้อมูลหุ้น</div>
+            <div class="indicator-row"><span class="indicator-name">Open</span><span class="indicator-val" id="sdOpen">-</span></div>
+            <div class="indicator-row"><span class="indicator-name">High</span><span class="indicator-val" id="sdHigh" style="color:var(--green);">-</span></div>
+            <div class="indicator-row"><span class="indicator-name">Low</span><span class="indicator-val" id="sdLow" style="color:var(--red);">-</span></div>
+            <div class="indicator-row"><span class="indicator-name">Volume</span><span class="indicator-val" id="sdVolume">-</span></div>
+            <div style="margin-top:14px;">
+              <button class="btn btn-glow" style="width:100%; margin-bottom:8px;" onclick="addToPortfolioPrompt()"><i class="fas fa-plus"></i> เพิ่มในพอร์ต</button>
+              <button class="btn btn-outline" style="width:100%;" onclick="addAlertPrompt()"><i class="fas fa-bell"></i> ตั้งแจ้งเตือน</button>
             </div>
           </div>
+        </div>
+
+        <!-- VIP locked message for non-VIP -->
+        <div id="sdVipLock" class="card" style="display:none; text-align:center; padding:16px; border-color:rgba(245,200,66,0.3);">
+          <i class="fas fa-lock" style="font-size:24px; color:var(--gold); margin-bottom:8px; display:block;"></i>
+          <div style="font-weight:700; margin-bottom:4px;">AI วิเคราะห์เต็มระบบ — เฉพาะ VIP</div>
+          <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">สมัคร VIP เพื่อดูแนวรับ-แนวต้าน จุดซื้อ จุดขาย Stop Loss และข่าวลึก</div>
+          <button class="btn btn-gold btn-sm" onclick="closeModal('stockDetailModal'); showPage('vip');"><i class="fas fa-crown"></i> ดูแผน VIP</button>
+        </div>
+
+        <!-- Stock-specific news (shown below analysis) -->
+        <div class="stock-news-section" id="stockNewsSection" style="display:none;">
+          <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-newspaper" style="color:var(--gold);"></i> ข่าวของ <span id="stockNewsSymbolLabel"></span></div>
+          <div id="stockNewsList"><div style="text-align:center; padding:20px;"><div class="spinner"></div></div></div>
         </div>
       </div>
     </div>
@@ -2901,82 +2909,39 @@
           <!-- ADMIN STATS -->
           <div class="grid grid-4" style="margin-bottom: 24px">
             <div class="admin-stat">
-              <div
-                class="admin-stat-icon"
-                style="
-                  background: rgba(41, 121, 255, 0.1);
-                  color: var(--blue-glow);
-                "
-              >
+              <div class="admin-stat-icon" style="background:rgba(41,121,255,0.1); color:var(--blue-glow);">
                 <i class="fas fa-users"></i>
               </div>
               <div>
-                <div style="font-size: 12px; color: var(--text-muted)">
-                  สมาชิกทั้งหมด
-                </div>
-                <div
-                  style="font-size: 24px; font-weight: 700"
-                  id="adminTotalUsers"
-                >
-                  -
-                </div>
+                <div style="font-size:12px; color:var(--text-muted);">สมาชิกทั้งหมด</div>
+                <div style="font-size:24px; font-weight:700;" id="adminTotalUsers">-</div>
               </div>
             </div>
             <div class="admin-stat">
-              <div
-                class="admin-stat-icon"
-                style="background: rgba(245, 200, 66, 0.1); color: var(--gold)"
-              >
+              <div class="admin-stat-icon" style="background:rgba(245,200,66,0.1); color:var(--gold);">
                 <i class="fas fa-crown"></i>
               </div>
               <div>
-                <div style="font-size: 12px; color: var(--text-muted)">
-                  สมาชิก VIP
-                </div>
-                <div
-                  style="font-size: 24px; font-weight: 700"
-                  id="adminVipUsers"
-                >
-                  -
-                </div>
+                <div style="font-size:12px; color:var(--text-muted);">สมาชิก VIP</div>
+                <div style="font-size:24px; font-weight:700;" id="adminVipUsers">-</div>
               </div>
             </div>
             <div class="admin-stat">
-              <div
-                class="admin-stat-icon"
-                style="background: rgba(0, 230, 118, 0.1); color: var(--green)"
-              >
+              <div class="admin-stat-icon" style="background:rgba(255,145,0,0.1); color:var(--orange);">
+                <i class="fas fa-hourglass-half"></i>
+              </div>
+              <div>
+                <div style="font-size:12px; color:var(--text-muted);">รอยืนยัน VIP</div>
+                <div style="font-size:24px; font-weight:700;" id="adminPendingVip">-</div>
+              </div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-icon" style="background:rgba(0,230,118,0.1); color:var(--green);">
                 <i class="fas fa-newspaper"></i>
               </div>
               <div>
-                <div style="font-size: 12px; color: var(--text-muted)">
-                  ข่าวในระบบ
-                </div>
-                <div
-                  style="font-size: 24px; font-weight: 700"
-                  id="adminNewsCount"
-                >
-                  -
-                </div>
-              </div>
-            </div>
-            <div class="admin-stat">
-              <div
-                class="admin-stat-icon"
-                style="background: rgba(255, 23, 68, 0.1); color: var(--red)"
-              >
-                <i class="fas fa-bell"></i>
-              </div>
-              <div>
-                <div style="font-size: 12px; color: var(--text-muted)">
-                  การแจ้งเตือน
-                </div>
-                <div
-                  style="font-size: 24px; font-weight: 700"
-                  id="adminAlertsCount"
-                >
-                  -
-                </div>
+                <div style="font-size:12px; color:var(--text-muted);">ข่าวในระบบ</div>
+                <div style="font-size:24px; font-weight:700;" id="adminNewsCount">-</div>
               </div>
             </div>
           </div>
@@ -2987,6 +2952,12 @@
               onclick="switchTab('adminTab', 'users', this)"
             >
               จัดการสมาชิก
+            </button>
+            <button
+              class="tab-btn"
+              onclick="switchTab('adminTab', 'vip-requests', this)"
+            >
+              <i class="fas fa-crown"></i> คำขอ VIP <span id="vipReqBadge" class="badge badge-red" style="display:none; margin-left:4px; padding:2px 6px; font-size:11px;">0</span>
             </button>
             <button
               class="tab-btn"
@@ -3004,21 +2975,31 @@
 
           <!-- USERS TAB -->
           <div id="adminTab-users" class="tab-content active">
-            <div
-              style="
-                display: flex;
-                gap: 10px;
-                margin-bottom: 16px;
-                flex-wrap: wrap;
-              "
-            >
-              <button class="btn btn-gold btn-sm" onclick="showAddUserModal()">
-                <i class="fas fa-user-plus"></i> เพิ่มสมาชิก
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()">
-                <i class="fas fa-sync"></i> รีเฟรช
-              </button>
+            <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+              <button class="btn btn-gold btn-sm" onclick="showAddUserModal()"><i class="fas fa-user-plus"></i> เพิ่มสมาชิก</button>
+              <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()"><i class="fas fa-sync"></i> รีเฟรช</button>
             </div>
+
+            <!-- Mini stats -->
+            <div class="admin-stat-row">
+              <div class="admin-mini-stat">
+                <div style="font-size:12px; color:var(--text-muted);">ทั่วไป</div>
+                <div class="admin-mini-val" id="adminFreeCount" style="color:var(--text-secondary);">-</div>
+              </div>
+              <div class="admin-mini-stat">
+                <div style="font-size:12px; color:var(--text-muted);">VIP รายเดือน</div>
+                <div class="admin-mini-val" id="adminMonthlyCount" style="color:var(--blue-glow);">-</div>
+              </div>
+              <div class="admin-mini-stat">
+                <div style="font-size:12px; color:var(--text-muted);">VIP รายปี</div>
+                <div class="admin-mini-val" id="adminYearlyCount" style="color:var(--gold);">-</div>
+              </div>
+              <div class="admin-mini-stat">
+                <div style="font-size:12px; color:var(--text-muted);">รายได้ประมาณ</div>
+                <div class="admin-mini-val" id="adminRevenue" style="color:var(--green);">-</div>
+              </div>
+            </div>
+
             <div class="card">
               <div class="table-wrap">
                 <table>
@@ -3027,19 +3008,29 @@
                       <th>ผู้ใช้</th>
                       <th>ชื่อ</th>
                       <th>สถานะ</th>
-                      <th>VIP</th>
+                      <th>แผน</th>
+                      <th>หมดอายุ</th>
                       <th>Role</th>
                       <th>จัดการ</th>
                     </tr>
                   </thead>
                   <tbody id="adminUsersTable">
-                    <tr>
-                      <td colspan="6" style="text-align: center; padding: 20px">
-                        <div class="spinner"></div>
-                      </td>
-                    </tr>
+                    <tr><td colspan="7" style="text-align:center; padding:20px;"><div class="spinner"></div></td></tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIP REQUESTS TAB -->
+          <div id="adminTab-vip-requests" class="tab-content">
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+              <button class="btn btn-outline btn-sm" onclick="loadVipRequests()"><i class="fas fa-sync"></i> รีเฟรช</button>
+            </div>
+            <div id="vipRequestsList">
+              <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                <i class="fas fa-crown" style="font-size:32px; display:block; margin-bottom:10px; color:var(--gold);"></i>
+                กำลังโหลดคำขอ VIP...
               </div>
             </div>
           </div>
@@ -3079,12 +3070,16 @@
                   </div>
                   <div class="form-group">
                     <label class="form-label">แหล่งข่าว</label>
-                    <input
-                      class="form-control"
-                      id="newsSource"
-                      placeholder="เช่น Bloomberg, SET"
-                    />
+                    <input class="form-control" id="newsSource" placeholder="เช่น Bloomberg, SET" />
                   </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ระดับการเข้าถึง</label>
+                  <select class="form-control" id="newsTier">
+                    <option value="free">ฟรี (ทุกคน)</option>
+                    <option value="vip">VIP รายเดือนขึ้นไป</option>
+                    <option value="yearly">VIP รายปีเท่านั้น</option>
+                  </select>
                 </div>
                 <button class="btn btn-gold" onclick="addNews()">
                   <i class="fas fa-plus"></i> เพิ่มข่าว
@@ -3235,6 +3230,7 @@
       // =============================================
       window.onload = async () => {
         await checkSession();
+        await checkVipExpiry();
         hideLoading();
         showPage("home");
         loadFeaturedStocks();
@@ -3242,6 +3238,7 @@
         loadInitialNews();
         setInterval(loadTickerPrices, 30000);
         setInterval(checkPriceAlerts, 60000);
+        setInterval(checkVipExpiry, 5 * 60000); // Check every 5 mins
       };
 
       function hideLoading() {
@@ -3270,9 +3267,11 @@
           document.getElementById("ddUserRole").textContent =
             currentUser.role === "admin"
               ? "👑 แอดมิน"
-              : currentUser.vip
-                ? "⭐ VIP"
-                : "สมาชิกทั่วไป";
+              : currentUser.vipPlan === 'yearly'
+                ? "💎 VIP รายปี"
+                : currentUser.vip || currentUser.vipPlan === 'monthly'
+                  ? "⭐ VIP รายเดือน"
+                  : "สมาชิกทั่วไป";
           // show auth menus
           document
             .getElementById("navDashboardItem")
@@ -3376,6 +3375,8 @@
             name,
             role: "user",
             vip: false,
+            vipPlan: null,
+            plan: 'free',
             status: "active",
             createdAt: new Date(),
           };
@@ -3618,14 +3619,25 @@
         document.getElementById("sdName").textContent = "กำลังโหลด...";
         document.getElementById("sdPrice").textContent = "-";
         document.getElementById("sdChange").textContent = "-";
-        showModal("stockDetailModal");
+        const srBox = document.getElementById("srBox");
+        if (srBox) srBox.style.display = 'none';
+        const stockNewsSection = document.getElementById("stockNewsSection");
+        if (stockNewsSection) stockNewsSection.style.display = 'none';
+        const vipLock = document.getElementById("sdVipLock");
+        if (vipLock) vipLock.style.display = 'none';
 
-        // Update fav button
+        // User badge
+        const userBadgeEl = document.getElementById("sdUserBadge");
+        if (userBadgeEl && currentUser) {
+          userBadgeEl.innerHTML = getPlanBadgeHtml(currentUser);
+          userBadgeEl.style.display = 'inline-flex';
+        }
+
+        showModal("stockDetailModal");
         const isFav = await isFavorite(symbol);
         const favBtn = document.getElementById("sdFavBtn");
         favBtn.classList.toggle("active", isFav);
 
-        // Quote
         const q = await fetchQuote(symbol);
         if (q && q.c) {
           const price = q.c;
@@ -3633,8 +3645,7 @@
           const chg = price - prev;
           const pct = prev ? (chg / prev) * 100 : 0;
           const up = chg >= 0;
-          document.getElementById("sdPrice").textContent =
-            `$${price.toFixed(2)}`;
+          document.getElementById("sdPrice").textContent = `$${price.toFixed(2)}`;
           document.getElementById("sdPrice").className = up ? "up" : "down";
           const changeEl = document.getElementById("sdChange");
           changeEl.textContent = `${up ? "+" : ""}${pct.toFixed(2)}% (${up ? "+" : ""}${chg.toFixed(2)})`;
@@ -3643,70 +3654,74 @@
           document.getElementById("sdHigh").textContent = `$${q.h?.toFixed(2)}`;
           document.getElementById("sdLow").textContent = `$${q.l?.toFixed(2)}`;
           document.getElementById("sdVolume").textContent = formatVolume(q.v);
-          generateAIAnalysis(price, q);
+
+          const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+          generateAIAnalysis(price, q, isVip);
           loadStockChart(symbol, "1D");
           document.getElementById("pfAvgCost").value = price.toFixed(2);
+
+          // Show SR box and news only for VIP, lock message for free
+          if (isVip) {
+            if (srBox) srBox.style.display = 'flex';
+            loadStockNewsInModal(symbol);
+          } else {
+            if (vipLock) vipLock.style.display = 'block';
+          }
         } else {
           document.getElementById("sdPrice").textContent = "ไม่พบข้อมูล";
         }
 
-        // Profile
         const profile = await fetchProfile(symbol);
         if (profile?.name) {
-          document.getElementById("sdName").textContent =
-            profile.name + (profile.exchange ? ` · ${profile.exchange}` : "");
+          document.getElementById("sdName").textContent = profile.name + (profile.exchange ? ` · ${profile.exchange}` : "");
         }
-
         document.getElementById("pfSymbol").value = symbol;
       }
 
-      function generateAIAnalysis(price, q) {
-        // Simulate technical indicators
-        const rsi = Math.random() * 40 + 30; // 30-70 range
+      function generateAIAnalysis(price, q, isVip) {
+        const rsi = Math.random() * 40 + 30;
         const macd = (Math.random() - 0.5) * 2;
         const ema = price * (1 + (Math.random() - 0.5) * 0.02);
         const support = price * (1 - Math.random() * 0.05 - 0.02);
         const resistance = price * (1 + Math.random() * 0.05 + 0.02);
-        const score = Math.round(Math.random() * 40 + 40); // 40-80
+        const score = Math.round(Math.random() * 40 + 40);
+        const buyPoint = support * 1.005;
+        const sellPoint = resistance * 0.995;
+        const stopLoss = support * 0.97;
 
         let signal, signalClass;
-        if (score >= 65) {
-          signal = "ซื้อ (BUY)";
-          signalClass = "rec-buy";
-        } else if (score >= 45) {
-          signal = "ถือ (HOLD)";
-          signalClass = "rec-hold";
-        } else {
-          signal = "ขาย (SELL)";
-          signalClass = "rec-sell";
-        }
+        if (score >= 65) { signal = "ซื้อ (BUY)"; signalClass = "rec-buy"; }
+        else if (score >= 45) { signal = "ถือ (HOLD)"; signalClass = "rec-hold"; }
+        else { signal = "ขาย (SELL)"; signalClass = "rec-sell"; }
 
         document.getElementById("aiScoreVal").textContent = score;
         const deg = `${score * 3.6}deg`;
-        document
-          .getElementById("aiScoreCircle")
-          .style.setProperty("--pct", deg);
+        document.getElementById("aiScoreCircle").style.setProperty("--pct", deg);
         document.getElementById("aiScoreCircle").style.background =
           `conic-gradient(${score >= 65 ? "var(--green)" : score >= 45 ? "var(--orange)" : "var(--red)"} ${deg}, rgba(255,255,255,0.06) ${deg})`;
         document.getElementById("aiSignal").textContent = signal;
-        document.getElementById("aiSignal").className =
-          `rec-signal ${signalClass}`;
+        document.getElementById("aiSignal").className = `rec-signal ${signalClass}`;
         document.getElementById("aiRSI").textContent = rsi.toFixed(1);
-        document.getElementById("aiRSI").style.color =
-          rsi > 70
-            ? "var(--red)"
-            : rsi < 30
-              ? "var(--green)"
-              : "var(--text-primary)";
-        document.getElementById("aiMACD").textContent =
-          (macd >= 0 ? "+" : "") + macd.toFixed(3);
-        document.getElementById("aiMACD").style.color =
-          macd >= 0 ? "var(--green)" : "var(--red)";
+        document.getElementById("aiRSI").style.color = rsi > 70 ? "var(--red)" : rsi < 30 ? "var(--green)" : "var(--text-primary)";
+        document.getElementById("aiMACD").textContent = (macd >= 0 ? "+" : "") + macd.toFixed(3);
+        document.getElementById("aiMACD").style.color = macd >= 0 ? "var(--green)" : "var(--red)";
         document.getElementById("aiEMA").textContent = `$${ema.toFixed(2)}`;
-        document.getElementById("aiSupport").textContent =
-          `$${support.toFixed(2)}`;
-        document.getElementById("aiResistance").textContent =
-          `$${resistance.toFixed(2)}`;
+        document.getElementById("aiSupport").textContent = `$${support.toFixed(2)}`;
+        document.getElementById("aiResistance").textContent = `$${resistance.toFixed(2)}`;
+
+        // SR box (VIP)
+        if (isVip) {
+          const srSup = document.getElementById("srSupportVal");
+          const srRes = document.getElementById("srResistanceVal");
+          const srBuy = document.getElementById("srBuyVal");
+          const srSell = document.getElementById("srSellVal");
+          const srStop = document.getElementById("srStopVal");
+          if (srSup) srSup.textContent = `$${support.toFixed(2)}`;
+          if (srRes) srRes.textContent = `$${resistance.toFixed(2)}`;
+          if (srBuy) srBuy.textContent = `$${buyPoint.toFixed(2)}`;
+          if (srSell) srSell.textContent = `$${sellPoint.toFixed(2)}`;
+          if (srStop) srStop.textContent = `$${stopLoss.toFixed(2)}`;
+        }
       }
 
       async function loadStockChart(symbol, period) {
@@ -3839,20 +3854,30 @@
         const btn = document.getElementById("sdFavBtn");
         const isFav = await isFavorite(symbol);
         if (isFav) {
-          const snap = await db
-            .collection("favorites")
-            .where("username", "==", currentUser.username)
-            .where("symbol", "==", symbol)
-            .get();
+          const snap = await db.collection("favorites").where("username", "==", currentUser.username).where("symbol", "==", symbol).get();
           snap.docs.forEach((d) => d.ref.delete());
           btn.classList.remove("active");
           toastSuccess(`ลบ ${symbol} ออกจากโปรดแล้ว`);
         } else {
-          await db.collection("favorites").add({
-            username: currentUser.username,
-            symbol,
-            createdAt: new Date(),
-          });
+          // Check limit for free users
+          const isVip = currentUser.vip || currentUser.vipPlan;
+          if (!isVip) {
+            const allFav = await db.collection("favorites").where("username", "==", currentUser.username).get();
+            if (allFav.size >= 5) {
+              Swal.fire({
+                title: '⭐ เกินจำนวนที่อนุญาต',
+                html: '<div style="color:#8899BB;">แผนฟรีเพิ่มหุ้นโปรดได้สูงสุด <strong style="color:#F5C842;">5 ตัว</strong><br>สมัคร VIP เพื่อเพิ่มได้ไม่จำกัด!</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '👑 ดูแผน VIP',
+                cancelButtonText: 'ปิด',
+                background: '#111827', color: '#F0F4FF',
+                confirmButtonColor: '#F5C842',
+              }).then(r => { if (r.isConfirmed) { closeModal('stockDetailModal'); showPage('vip'); } });
+              return;
+            }
+          }
+          await db.collection("favorites").add({ username: currentUser.username, symbol, createdAt: new Date() });
           btn.classList.add("active");
           toastSuccess(`เพิ่ม ${symbol} ในโปรดแล้ว ❤️`);
         }
@@ -3860,26 +3885,29 @@
 
       async function toggleFavoriteFromGrid(e, symbol, btn) {
         e.stopPropagation();
-        if (!currentUser) {
-          showModal("loginModal");
-          return;
-        }
+        if (!currentUser) { showModal("loginModal"); return; }
         const isFav = await isFavorite(symbol);
         if (isFav) {
-          const snap = await db
-            .collection("favorites")
-            .where("username", "==", currentUser.username)
-            .where("symbol", "==", symbol)
-            .get();
+          const snap = await db.collection("favorites").where("username", "==", currentUser.username).where("symbol", "==", symbol).get();
           snap.docs.forEach((d) => d.ref.delete());
           btn.classList.remove("active");
           toastSuccess(`ลบ ${symbol} ออกจากโปรดแล้ว`);
         } else {
-          await db.collection("favorites").add({
-            username: currentUser.username,
-            symbol,
-            createdAt: new Date(),
-          });
+          const isVip = currentUser.vip || currentUser.vipPlan;
+          if (!isVip) {
+            const allFav = await db.collection("favorites").where("username", "==", currentUser.username).get();
+            if (allFav.size >= 5) {
+              Swal.fire({
+                title: '⭐ เกินจำนวนที่อนุญาต',
+                html: '<div style="color:#8899BB;">แผนฟรีเพิ่มหุ้นโปรดได้สูงสุด <strong style="color:#F5C842;">5 ตัว</strong><br>สมัคร VIP เพื่อเพิ่มได้ไม่จำกัด!</div>',
+                icon: 'warning', showCancelButton: true,
+                confirmButtonText: '👑 ดูแผน VIP', cancelButtonText: 'ปิด',
+                background: '#111827', color: '#F0F4FF', confirmButtonColor: '#F5C842',
+              }).then(r => { if (r.isConfirmed) showPage('vip'); });
+              return;
+            }
+          }
+          await db.collection("favorites").add({ username: currentUser.username, symbol, createdAt: new Date() });
           btn.classList.add("active");
           toastSuccess(`เพิ่ม ${symbol} ในโปรดแล้ว ❤️`);
         }
@@ -4314,18 +4342,32 @@
         const container = document.getElementById("newsList");
         if (!container) return;
         container.innerHTML = "";
-        allNewsData.forEach((n) => {
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+        const isYearly = currentUser && currentUser.vipPlan === 'yearly';
+
+        allNewsData.forEach((n, i) => {
           const icons = { positive: "📈", negative: "📉", neutral: "📰" };
           const div = document.createElement("div");
           div.className = "news-item";
+
+          // Blur/lock for premium news if not VIP
+          const isPremium = n.tier === 'vip' || n.tier === 'yearly';
+          const isYearlyOnly = n.tier === 'yearly';
+          const isLocked = (isPremium && !isVip) || (isYearlyOnly && !isYearly);
+
           div.innerHTML = `
-      <div class="news-item-thumb">${icons[n.type] || "📰"}</div>
-      <div>
-        <div class="news-title">${escapeHtml(n.title)}</div>
-        <div class="news-meta"><span class="news-source">${escapeHtml(n.source || "")}</span> · ${formatDate(n.date)}</div>
-        <div class="badge ${n.type === "positive" ? "badge-green" : n.type === "negative" ? "badge-red" : "badge-gray"}" style="margin-top:6px;">${n.type === "positive" ? "ข่าวดี" : n.type === "negative" ? "ข่าวร้าย" : "ทั่วไป"}</div>
-      </div>
-    `;
+            <div class="news-item-thumb">${icons[n.type] || "📰"}</div>
+            <div style="flex:1; ${isLocked ? 'filter:blur(2px); user-select:none; pointer-events:none;' : ''}">
+              <div class="news-title">${escapeHtml(n.title)}</div>
+              <div class="news-meta"><span class="news-source">${escapeHtml(n.source || "")}</span> · ${formatDate(n.date)}</div>
+              <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                <span class="badge ${n.type === "positive" ? "badge-green" : n.type === "negative" ? "badge-red" : "badge-gray"}">${n.type === "positive" ? "ข่าวดี" : n.type === "negative" ? "ข่าวร้าย" : "ทั่วไป"}</span>
+                ${n.tier === 'vip' ? '<span class="badge badge-vip-month" style="font-size:10px;"><i class="fas fa-crown"></i> VIP</span>' : ''}
+                ${n.tier === 'yearly' ? '<span class="badge badge-vip-year" style="font-size:10px;"><i class="fas fa-gem"></i> VIP ปี</span>' : ''}
+              </div>
+            </div>
+            ${isLocked ? `<button class="btn btn-gold btn-xs" style="flex-shrink:0; align-self:center;" onclick="showPage('vip')"><i class="fas fa-lock"></i></button>` : ''}
+          `;
           container.appendChild(div);
         });
       }
@@ -4402,42 +4444,67 @@
       // =============================================
       //  VIP
       // =============================================
+      function getUserPlan(user) {
+        if (!user) return 'free';
+        if (user.vipPlan === 'yearly') return 'yearly';
+        if (user.vipPlan === 'monthly') return 'monthly';
+        if (user.vip) return 'monthly'; // legacy
+        return 'free';
+      }
+
+      function getPlanBadgeHtml(user) {
+        const plan = getUserPlan(user);
+        if (plan === 'yearly') return '<span class="badge badge-vip-year"><i class="fas fa-gem"></i> VIP ปี</span>';
+        if (plan === 'monthly') return '<span class="badge badge-vip-month"><i class="fas fa-crown"></i> VIP เดือน</span>';
+        return '<span class="badge badge-free"><i class="fas fa-user"></i> ทั่วไป</span>';
+      }
+
       async function subscribeVIP(plan) {
         if (!currentUser) {
-          showModal("loginModal");
+          showModal('loginModal');
           return;
         }
+        // Check if already VIP
+        if (currentUser.vipPlan === plan || (plan === 'monthly' && currentUser.vip && !currentUser.vipPlan)) {
+          toastError('คุณมีแผนนี้อยู่แล้ว หรืออยู่ในระหว่างรอยืนยัน');
+          return;
+        }
+
         const result = await Swal.fire({
-          title: "👑 สมัคร VIP",
-          html: `<div style="color:#8899BB;">แผน: <strong style="color:#F5C842">${plan === "monthly" ? "รายเดือน ฿299" : "รายปี ฿2,499"}</strong></div><div style="margin-top:8px; font-size:13px; color:#4A5A7A;">*ฟีเจอร์ Demo - ไม่มีการชำระเงินจริง</div>`,
-          icon: "question",
+          title: '👑 สมัคร VIP',
+          html: `<div style="color:#8899BB;">แผน: <strong style="color:#F5C842">${plan === 'monthly' ? 'รายเดือน ฿299' : 'รายปี ฿2,499'}</strong></div>
+                 <div style="margin-top:8px; font-size:13px; color:#4A5A7A;">ระบบจะส่งคำขอให้แอดมินยืนยันก่อนเปิดใช้งาน</div>`,
+          icon: 'question',
           showCancelButton: true,
-          confirmButtonText: "ยืนยัน",
-          cancelButtonText: "ยกเลิก",
-          background: "#111827",
-          color: "#F0F4FF",
-          confirmButtonColor: "#F5C842",
+          confirmButtonText: 'ยืนยัน',
+          cancelButtonText: 'ยกเลิก',
+          background: '#111827',
+          color: '#F0F4FF',
+          confirmButtonColor: '#F5C842',
         });
+
         if (result.isConfirmed) {
           try {
-            const expire = new Date();
-            expire.setMonth(expire.getMonth() + (plan === "monthly" ? 1 : 12));
-            await db.collection("subscriptions").add({
+            // Check if already has pending request
+            const existingSnap = await db.collection('vipRequests')
+              .where('username', '==', currentUser.username)
+              .where('status', '==', 'pending')
+              .get();
+            if (!existingSnap.empty) {
+              toastError('คุณมีคำขอที่รอยืนยันอยู่แล้ว');
+              return;
+            }
+            await db.collection('vipRequests').add({
               username: currentUser.username,
+              name: currentUser.name || currentUser.username,
+              email: currentUser.email || '',
               plan,
-              expireDate: expire,
-              createdAt: new Date(),
+              status: 'pending',
+              requestedAt: new Date(),
             });
-            await db
-              .collection("users")
-              .doc(currentUser.id)
-              .update({ vip: true });
-            currentUser.vip = true;
-            localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            updateNavForUser();
-            toastSuccess("สมัคร VIP สำเร็จ! 👑 ปลดล็อกทุกฟีเจอร์แล้ว");
+            toastSuccess('ส่งคำขอสมัคร VIP แล้ว! รอแอดมินยืนยัน 📩');
           } catch (e) {
-            toastError("เกิดข้อผิดพลาด");
+            toastError('เกิดข้อผิดพลาด');
           }
         }
       }
@@ -4450,60 +4517,118 @@
         loadAdminUsers();
         loadAdminStats();
         loadAdminNews();
+        loadVipRequests();
       }
 
       async function loadAdminStats() {
         try {
           const usersSnap = await db.collection("users").get();
-          document.getElementById("adminTotalUsers").textContent =
-            usersSnap.size;
+          document.getElementById("adminTotalUsers").textContent = usersSnap.size;
           const vipUsers = usersSnap.docs.filter((d) => d.data().vip).length;
           document.getElementById("adminVipUsers").textContent = vipUsers;
+
+          let freeCount = 0, monthlyCount = 0, yearlyCount = 0, revenue = 0;
+          usersSnap.docs.forEach(d => {
+            const u = d.data();
+            if (u.role === 'admin') return;
+            if (u.vipPlan === 'yearly') { yearlyCount++; revenue += 2499; }
+            else if (u.vipPlan === 'monthly' || (u.vip && !u.vipPlan)) { monthlyCount++; revenue += 299; }
+            else freeCount++;
+          });
+          const freeEl = document.getElementById("adminFreeCount");
+          const monthlyEl = document.getElementById("adminMonthlyCount");
+          const yearlyEl = document.getElementById("adminYearlyCount");
+          const revEl = document.getElementById("adminRevenue");
+          if (freeEl) freeEl.textContent = freeCount;
+          if (monthlyEl) monthlyEl.textContent = monthlyCount;
+          if (yearlyEl) yearlyEl.textContent = yearlyCount;
+          if (revEl) revEl.textContent = `฿${revenue.toLocaleString()}`;
+
           const newsSnap = await db.collection("news").get();
           document.getElementById("adminNewsCount").textContent = newsSnap.size;
-          const alertsSnap = await db.collection("alerts").get();
-          document.getElementById("adminAlertsCount").textContent =
-            alertsSnap.size;
+
+          const pendingSnap = await db.collection("vipRequests").where("status","==","pending").get();
+          const pendingEl = document.getElementById("adminPendingVip");
+          if (pendingEl) pendingEl.textContent = pendingSnap.size;
+          const reqBadge = document.getElementById("vipReqBadge");
+          if (reqBadge) {
+            if (pendingSnap.size > 0) {
+              reqBadge.textContent = pendingSnap.size;
+              reqBadge.style.display = 'inline-flex';
+            } else {
+              reqBadge.style.display = 'none';
+            }
+          }
         } catch (e) {}
       }
 
       async function loadAdminUsers() {
         const tbody = document.getElementById("adminUsersTable");
-        tbody.innerHTML =
-          '<tr><td colspan="6" style="text-align:center"><div class="spinner"></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center"><div class="spinner"></div></td></tr>';
         try {
           const snap = await db.collection("users").get();
           tbody.innerHTML = "";
           snap.docs.forEach((doc) => {
             const u = doc.data();
+            let planBadge;
+            if (u.vipPlan === 'yearly') planBadge = '<span class="badge badge-vip-year"><i class="fas fa-gem"></i> VIP ปี</span>';
+            else if (u.vipPlan === 'monthly' || (u.vip && !u.vipPlan)) planBadge = '<span class="badge badge-vip-month"><i class="fas fa-crown"></i> VIP เดือน</span>';
+            else planBadge = '<span class="badge badge-free">ทั่วไป</span>';
+            const expiry = u.vipExpire ? formatDate(u.vipExpire) : '-';
             const tr = document.createElement("tr");
             tr.innerHTML = `
-        <td style="font-family:'Share Tech Mono'; color:var(--gold)">${escapeHtml(u.username)}</td>
-        <td>${escapeHtml(u.name || "-")}</td>
-        <td><span class="badge ${u.status === "active" ? "badge-green" : "badge-red"}">${u.status === "active" ? "ใช้งาน" : "ระงับ"}</span></td>
-        <td>${u.vip ? '<span class="badge badge-gold"><i class="fas fa-crown"></i> VIP</span>' : '<span class="badge badge-gray">ปกติ</span>'}</td>
-        <td><span class="badge ${u.role === "admin" ? "badge-gold" : "badge-blue"}">${u.role}</span></td>
-        <td>
-          <button class="btn btn-outline btn-xs" onclick="toggleUserVip('${doc.id}','${u.vip}')"><i class="fas fa-crown"></i></button>
-          <button class="btn btn-danger btn-xs" onclick="deleteUser('${doc.id}','${escapeHtml(u.username)}')"><i class="fas fa-trash"></i></button>
-        </td>
-      `;
+              <td style="font-family:'Share Tech Mono'; color:var(--gold)">${escapeHtml(u.username)}</td>
+              <td>${escapeHtml(u.name || "-")}</td>
+              <td><span class="badge ${u.status === "active" ? "badge-green" : "badge-red"}">${u.status === "active" ? "ใช้งาน" : "ระงับ"}</span></td>
+              <td>${planBadge}</td>
+              <td style="font-size:12px; color:var(--text-muted);">${expiry}</td>
+              <td><span class="badge ${u.role === "admin" ? "badge-gold" : "badge-blue"}">${u.role}</span></td>
+              <td>
+                <button class="btn btn-outline btn-xs" onclick="toggleUserVip('${doc.id}','${u.vipPlan || (u.vip ? "monthly" : "none")}')"><i class="fas fa-crown"></i></button>
+                <button class="btn btn-danger btn-xs" onclick="deleteUser('${doc.id}','${escapeHtml(u.username)}')"><i class="fas fa-trash"></i></button>
+              </td>
+            `;
             tbody.appendChild(tr);
           });
         } catch (e) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="color:var(--red)">เกิดข้อผิดพลาด</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red)">เกิดข้อผิดพลาด</td></tr>';
         }
       }
 
-      async function toggleUserVip(docId, currentVip) {
+      async function toggleUserVip(docId, currentPlan) {
+        const plans = [
+          { value: 'none', label: 'ทั่วไป (ยกเลิก VIP)' },
+          { value: 'monthly', label: 'VIP รายเดือน (+30 วัน)' },
+          { value: 'yearly', label: 'VIP รายปี (+365 วัน)' },
+        ];
+        const { value: selectedPlan } = await Swal.fire({
+          title: 'ตั้งค่าแผน VIP',
+          input: 'select',
+          inputOptions: { none: 'ทั่วไป', monthly: 'VIP รายเดือน', yearly: 'VIP รายปี' },
+          inputValue: currentPlan === 'none' ? 'none' : currentPlan,
+          showCancelButton: true,
+          confirmButtonText: 'บันทึก',
+          cancelButtonText: 'ยกเลิก',
+          background: '#111827',
+          color: '#F0F4FF',
+          confirmButtonColor: '#F5C842',
+        });
+        if (!selectedPlan) return;
         try {
-          await db
-            .collection("users")
-            .doc(docId)
-            .update({ vip: currentVip !== "true" });
-          toastSuccess("อัปเดต VIP แล้ว");
+          const updates = { vip: selectedPlan !== 'none', vipPlan: selectedPlan === 'none' ? null : selectedPlan };
+          if (selectedPlan !== 'none') {
+            const expire = new Date();
+            expire.setDate(expire.getDate() + (selectedPlan === 'yearly' ? 365 : 30));
+            updates.vipExpire = expire;
+            updates.vipStart = new Date();
+          } else {
+            updates.vipExpire = null;
+            updates.vipStart = null;
+          }
+          await db.collection("users").doc(docId).update(updates);
+          toastSuccess("อัปเดตแผน VIP แล้ว");
           loadAdminUsers();
+          loadAdminStats();
         } catch (e) {
           toastError("เกิดข้อผิดพลาด");
         }
@@ -4580,15 +4705,14 @@
         const content = document.getElementById("newsContent").value.trim();
         const type = document.getElementById("newsType").value;
         const source = document.getElementById("newsSource").value.trim();
+        const tier = document.getElementById("newsTier")?.value || 'free';
         if (!title || !content) {
           toastError("กรุณากรอกหัวข้อและเนื้อหา");
           return;
         }
         try {
           await db.collection("news").add({
-            title,
-            content,
-            type,
+            title, content, type, tier,
             source: source || "Admin",
             date: new Date(),
           });
@@ -4755,6 +4879,166 @@
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;");
+      }
+
+      // =============================================
+      //  VIP REQUESTS (ADMIN)
+      // =============================================
+      async function loadVipRequests() {
+        const container = document.getElementById("vipRequestsList");
+        if (!container) return;
+        container.innerHTML = '<div style="text-align:center; padding:30px;"><div class="spinner"></div></div>';
+        try {
+          const snap = await db.collection("vipRequests").orderBy("requestedAt", "desc").get();
+          if (snap.empty) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fas fa-check-circle" style="font-size:32px; display:block; margin-bottom:10px; color:var(--green);"></i>ไม่มีคำขอรออนุมัติ</div>';
+            return;
+          }
+          container.innerHTML = '';
+          snap.docs.forEach(doc => {
+            const r = doc.data();
+            const planLabel = r.plan === 'yearly' ? 'VIP รายปี (+365 วัน)' : 'VIP รายเดือน (+30 วัน)';
+            const planColor = r.plan === 'yearly' ? 'var(--gold)' : 'var(--blue-glow)';
+            const statusBadge = r.status === 'pending'
+              ? '<span class="badge badge-gray" style="background:rgba(255,145,0,0.15); color:var(--orange);">รอยืนยัน</span>'
+              : r.status === 'approved'
+                ? '<span class="badge badge-green">อนุมัติแล้ว</span>'
+                : '<span class="badge badge-red">ปฏิเสธแล้ว</span>';
+            const div = document.createElement('div');
+            div.className = 'req-card';
+            div.innerHTML = `
+              <div style="width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-dark)); display:flex; align-items:center; justify-content:center; color:var(--navy); font-weight:700; font-size:18px; flex-shrink:0;">
+                ${(r.name||r.username||'?')[0].toUpperCase()}
+              </div>
+              <div class="req-info">
+                <div style="font-weight:700; font-size:15px;">${escapeHtml(r.name||r.username||'-')}</div>
+                <div style="font-size:13px; color:var(--text-muted);">@${escapeHtml(r.username||'')} ${r.email ? '· ' + escapeHtml(r.email) : ''}</div>
+                <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  <span style="font-size:13px; font-weight:700; color:${planColor};">${planLabel}</span>
+                  ${statusBadge}
+                  <span style="font-size:12px; color:var(--text-muted);">${formatDate(r.requestedAt)}</span>
+                </div>
+              </div>
+              ${r.status === 'pending' ? `
+              <div class="req-actions">
+                <button class="btn btn-approve btn-sm" onclick="approveVipRequest('${doc.id}','${r.username}','${r.plan}')"><i class="fas fa-check"></i> อนุมัติ</button>
+                <button class="btn btn-reject btn-sm" onclick="rejectVipRequest('${doc.id}','${r.username}')"><i class="fas fa-times"></i> ปฏิเสธ</button>
+              </div>` : ''}
+            `;
+            container.appendChild(div);
+          });
+        } catch (e) {
+          container.innerHTML = '<div style="color:var(--red); padding:20px;">เกิดข้อผิดพลาดในการโหลด</div>';
+        }
+      }
+
+      async function approveVipRequest(reqId, username, plan) {
+        try {
+          // Find user doc
+          const userSnap = await db.collection("users").where("username","==",username).get();
+          if (userSnap.empty) { toastError("ไม่พบผู้ใช้"); return; }
+          const userDoc = userSnap.docs[0];
+          const expire = new Date();
+          expire.setDate(expire.getDate() + (plan === 'yearly' ? 365 : 30));
+          await userDoc.ref.update({
+            vip: true, vipPlan: plan,
+            vipStart: new Date(), vipExpire: expire,
+          });
+          await db.collection("vipRequests").doc(reqId).update({ status: 'approved', approvedAt: new Date() });
+          toastSuccess(`อนุมัติ VIP ${plan === 'yearly' ? 'รายปี' : 'รายเดือน'} ให้ @${username} แล้ว 👑`);
+          loadVipRequests();
+          loadAdminStats();
+        } catch(e) { toastError("เกิดข้อผิดพลาด"); }
+      }
+
+      async function rejectVipRequest(reqId, username) {
+        const result = await Swal.fire({
+          title: `ปฏิเสธคำขอของ @${username}?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'ปฏิเสธ',
+          cancelButtonText: 'ยกเลิก',
+          background: '#111827', color: '#F0F4FF',
+          confirmButtonColor: '#FF1744',
+        });
+        if (!result.isConfirmed) return;
+        try {
+          await db.collection("vipRequests").doc(reqId).update({ status: 'rejected', rejectedAt: new Date() });
+          toastSuccess("ปฏิเสธคำขอแล้ว");
+          loadVipRequests();
+          loadAdminStats();
+        } catch(e) { toastError("เกิดข้อผิดพลาด"); }
+      }
+
+      // =============================================
+      //  CHECK VIP EXPIRY (auto-downgrade)
+      // =============================================
+      async function checkVipExpiry() {
+        if (!currentUser || !currentUser.vip) return;
+        try {
+          const snap = await db.collection("users").doc(currentUser.id).get();
+          if (!snap.exists) return;
+          const u = snap.data();
+          if (u.vipExpire) {
+            const expire = u.vipExpire.toDate ? u.vipExpire.toDate() : new Date(u.vipExpire);
+            if (expire < new Date()) {
+              await db.collection("users").doc(currentUser.id).update({ vip: false, vipPlan: null, vipExpire: null });
+              currentUser.vip = false;
+              currentUser.vipPlan = null;
+              localStorage.setItem("currentUser", JSON.stringify(currentUser));
+              updateNavForUser();
+              toastError("แผน VIP ของคุณหมดอายุแล้ว — ระบบลดสถานะเป็นสมาชิกทั่วไป");
+            } else {
+              // Sync vipPlan to local
+              currentUser.vipPlan = u.vipPlan;
+              localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            }
+          }
+        } catch(e) {}
+      }
+
+      // =============================================
+      //  STOCK NEWS IN MODAL
+      // =============================================
+      async function loadStockNewsInModal(symbol) {
+        const section = document.getElementById("stockNewsSection");
+        const list = document.getElementById("stockNewsList");
+        const label = document.getElementById("stockNewsSymbolLabel");
+        if (!section || !list) return;
+        section.style.display = 'block';
+        if (label) label.textContent = symbol;
+        list.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner"></div></div>';
+        try {
+          const res = await fetch(`${FINNHUB}/company-news?symbol=${symbol}&from=${new Date(Date.now()-7*86400000).toISOString().split('T')[0]}&to=${new Date().toISOString().split('T')[0]}&token=${API_KEY}`);
+          const data = await res.json();
+          if (!data || !data.length) {
+            list.innerHTML = '<div style="color:var(--text-muted); font-size:14px; padding:10px 0;">ไม่พบข่าวล่าสุดของหุ้นนี้</div>';
+            return;
+          }
+          list.innerHTML = '';
+          data.slice(0, 5).forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'news-item';
+            div.style.cursor = 'pointer';
+            div.onclick = () => window.open(n.url, '_blank');
+            div.innerHTML = `
+              <div class="news-item-thumb" style="font-size:14px; overflow:hidden; flex-shrink:0; width:60px; height:50px;">
+                ${n.image ? `<img src="${n.image}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" onerror="this.parentElement.innerHTML='📰'">` : '📰'}
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div class="news-title" style="font-size:13px; white-space:normal;">${(n.headline||'').substring(0, 90)}...</div>
+                <div class="news-meta" style="margin-top:4px;">
+                  <span class="news-source">${n.source||''}</span>
+                  · ${new Date(n.datetime*1000).toLocaleDateString('th-TH')}
+                  <i class="fas fa-external-link-alt" style="font-size:10px; margin-left:4px;"></i>
+                </div>
+              </div>
+            `;
+            list.appendChild(div);
+          });
+        } catch(e) {
+          list.innerHTML = '<div style="color:var(--text-muted); font-size:14px; padding:10px 0;">ไม่สามารถโหลดข่าวได้</div>';
+        }
       }
 
       // =============================================
