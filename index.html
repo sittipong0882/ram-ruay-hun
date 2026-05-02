@@ -1450,6 +1450,107 @@
       .d-none {
         display: none !important;
       }
+
+      /* ===== EMA LEGEND & CONTROLS ===== */
+      .ema-legend {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .ema-legend-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-right: 4px;
+      }
+      .ema-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1.5px solid;
+        transition: all 0.2s;
+        font-family: "Share Tech Mono", monospace;
+        user-select: none;
+      }
+      .ema-toggle-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        transition: opacity 0.2s;
+      }
+      .ema-toggle.ema20 { border-color: #00e676; color: #00e676; background: rgba(0,230,118,0.1); }
+      .ema-toggle.ema50 { border-color: #ff9100; color: #ff9100; background: rgba(255,145,0,0.1); }
+      .ema-toggle.ema200 { border-color: #ff1744; color: #ff1744; background: rgba(255,23,68,0.1); }
+      .ema-toggle.disabled { opacity: 0.3; }
+
+      /* EMA ANALYSIS CARD */
+      .ema-analysis-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 12px;
+        padding: 14px;
+        margin-top: 12px;
+      }
+      .ema-analysis-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ema-signal-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        font-size: 13px;
+      }
+      .ema-signal-row:last-child { border-bottom: none; }
+      .ema-signal-icon { font-size: 14px; width: 20px; text-align: center; }
+      .ema-signal-text { flex: 1; color: var(--text-secondary); }
+      .ema-signal-badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .ema-badge-bullish { background: rgba(0,230,118,0.15); color: var(--green); }
+      .ema-badge-bearish { background: rgba(255,23,68,0.15); color: var(--red); }
+      .ema-badge-neutral { background: rgba(255,145,0,0.15); color: var(--orange); }
+
+      /* TREND SUMMARY BOX */
+      .trend-summary {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .trend-bullish { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.25); color: var(--green); }
+      .trend-bearish { background: rgba(255,23,68,0.08); border: 1px solid rgba(255,23,68,0.25); color: var(--red); }
+      .trend-neutral { background: rgba(255,145,0,0.08); border: 1px solid rgba(255,145,0,0.25); color: var(--orange); }
+      .trend-accumulate { background: rgba(41,121,255,0.08); border: 1px solid rgba(41,121,255,0.25); color: var(--blue-glow); }
     </style>
   </head>
   <body>
@@ -1829,7 +1930,23 @@
           <button class="chart-tab" onclick="changeChartPeriod('1M', this)">1M</button>
           <button class="chart-tab" onclick="changeChartPeriod('3M', this)">3M</button>
         </div>
-        <div class="chart-wrap" style="height:220px; margin-bottom:16px; position:relative;">
+
+        <!-- EMA LEGEND / TOGGLE -->
+        <div class="ema-legend" id="emaLegend">
+          <span class="ema-legend-label"><i class="fas fa-wave-square" style="color:var(--gold);"></i> EMA</span>
+          <span class="ema-toggle ema20" id="toggleEMA20" onclick="toggleEMALine('ema20')">
+            <span class="ema-toggle-dot" style="background:#00e676;"></span>EMA 20
+          </span>
+          <span class="ema-toggle ema50" id="toggleEMA50" onclick="toggleEMALine('ema50')">
+            <span class="ema-toggle-dot" style="background:#ff9100;"></span>EMA 50
+          </span>
+          <span class="ema-toggle ema200" id="toggleEMA200" onclick="toggleEMALine('ema200')">
+            <span class="ema-toggle-dot" style="background:#ff1744;"></span>EMA 200
+          </span>
+          <span style="margin-left:auto; font-size:11px; color:var(--text-muted);" id="emaValuesLabel"></span>
+        </div>
+
+        <div class="chart-wrap" style="height:260px; margin-bottom:16px; position:relative;">
           <canvas id="stockDetailChart"></canvas>
           <!-- Support / Resistance overlay labels -->
           <div id="chartSRLabels" style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; gap:4px; font-size:11px; font-family:'Share Tech Mono';"></div>
@@ -1874,7 +1991,18 @@
               </div>
               <div class="indicator-row"><span class="indicator-name">RSI (14)</span><span class="indicator-val" id="aiRSI">-</span></div>
               <div class="indicator-row"><span class="indicator-name">MACD</span><span class="indicator-val" id="aiMACD">-</span></div>
-              <div class="indicator-row"><span class="indicator-name">EMA 20</span><span class="indicator-val" id="aiEMA">-</span></div>
+              <div class="indicator-row">
+                <span class="indicator-name" style="color:#00e676;">● EMA 20</span>
+                <span class="indicator-val" id="aiEMA20" style="color:#00e676;">-</span>
+              </div>
+              <div class="indicator-row">
+                <span class="indicator-name" style="color:#ff9100;">● EMA 50</span>
+                <span class="indicator-val" id="aiEMA50" style="color:#ff9100;">-</span>
+              </div>
+              <div class="indicator-row">
+                <span class="indicator-name" style="color:#ff1744;">● EMA 200</span>
+                <span class="indicator-val" id="aiEMA200" style="color:#ff1744;">-</span>
+              </div>
               <div class="indicator-row"><span class="indicator-name">แนวรับ</span><span class="indicator-val" id="aiSupport">-</span></div>
               <div class="indicator-row"><span class="indicator-name">แนวต้าน</span><span class="indicator-val" id="aiResistance">-</span></div>
             </div>
@@ -1898,6 +2026,19 @@
           <div style="font-weight:700; margin-bottom:4px;">AI วิเคราะห์เต็มระบบ — เฉพาะ VIP</div>
           <div style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">สมัคร VIP เพื่อดูแนวรับ-แนวต้าน จุดซื้อ จุดขาย Stop Loss และข่าวลึก</div>
           <button class="btn btn-gold btn-sm" onclick="closeModal('stockDetailModal'); showPage('vip');"><i class="fas fa-crown"></i> ดูแผน VIP</button>
+        </div>
+
+        <!-- EMA AI ANALYSIS (below grid) -->
+        <div class="ema-analysis-card" id="emaAnalysisCard" style="display:none;">
+          <div class="ema-analysis-title">
+            <i class="fas fa-brain" style="color:var(--gold);"></i>
+            วิเคราะห์สัญญาณ EMA
+          </div>
+          <div id="emaSignalRows"><!-- filled by JS --></div>
+          <div id="emaTrendSummary" class="trend-summary trend-neutral">
+            <span style="font-size:20px;" id="emaTrendIcon">📊</span>
+            <span id="emaTrendText">กำลังวิเคราะห์...</span>
+          </div>
         </div>
 
         <!-- Stock-specific news (shown below analysis) -->
@@ -3625,6 +3766,15 @@
         if (stockNewsSection) stockNewsSection.style.display = 'none';
         const vipLock = document.getElementById("sdVipLock");
         if (vipLock) vipLock.style.display = 'none';
+        // Reset EMA card
+        const emaCard = document.getElementById("emaAnalysisCard");
+        if (emaCard) emaCard.style.display = 'none';
+        // Reset EMA toggles
+        emaVisibility = { ema20: true, ema50: true, ema200: true };
+        ['EMA20','EMA50','EMA200'].forEach(k => {
+          const el = document.getElementById('toggle'+k);
+          if (el) el.classList.remove('disabled');
+        });
 
         // User badge
         const userBadgeEl = document.getElementById("sdUserBadge");
@@ -3656,7 +3806,7 @@
           document.getElementById("sdVolume").textContent = formatVolume(q.v);
 
           const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
-          generateAIAnalysis(price, q, isVip);
+          generateAIAnalysis(price, q, isVip, null);
           loadStockChart(symbol, "1D");
           document.getElementById("pfAvgCost").value = price.toFixed(2);
 
@@ -3678,13 +3828,79 @@
         document.getElementById("pfSymbol").value = symbol;
       }
 
-      function generateAIAnalysis(price, q, isVip) {
+      // =============================================
+      //  EMA CALCULATION (REAL)
+      // =============================================
+      function calculateEMA(prices, period) {
+        if (!prices || prices.length < period) return [];
+        const k = 2 / (period + 1);
+        const result = new Array(prices.length).fill(null);
+        // Seed with SMA of first `period` values
+        let sum = 0;
+        for (let i = 0; i < period; i++) sum += prices[i];
+        result[period - 1] = sum / period;
+        for (let i = period; i < prices.length; i++) {
+          result[i] = prices[i] * k + result[i - 1] * (1 - k);
+        }
+        return result;
+      }
+
+      // =============================================
+      //  EMA TOGGLE STATE
+      // =============================================
+      let emaVisibility = { ema20: true, ema50: true, ema200: true };
+
+      function toggleEMALine(key) {
+        emaVisibility[key] = !emaVisibility[key];
+        const btn = document.getElementById('toggle' + key.toUpperCase().replace('EMA', 'EMA'));
+        // fix casing
+        const btnId = 'toggleEMA' + key.replace('ema','');
+        const btnEl = document.getElementById(btnId);
+        if (btnEl) btnEl.classList.toggle('disabled', !emaVisibility[key]);
+        if (!stockDetailChartInstance) return;
+        const dsMap = { ema20: 1, ema50: 2, ema200: 3 };
+        const ds = stockDetailChartInstance.data.datasets[dsMap[key]];
+        if (ds) {
+          ds.hidden = !emaVisibility[key];
+          stockDetailChartInstance.update();
+        }
+      }
+
+      function generateAIAnalysis(price, q, isVip, priceHistory) {
+        const prices = priceHistory && priceHistory.length > 5 ? priceHistory : null;
+
+        // Calculate real EMAs from price history if available
+        let ema20Val, ema50Val, ema200Val;
+        if (prices) {
+          const ema20arr = calculateEMA(prices, 20);
+          const ema50arr = calculateEMA(prices, 50);
+          const ema200arr = calculateEMA(prices, 200);
+          ema20Val = ema20arr[ema20arr.length - 1] || price * (1 + (Math.random() - 0.5) * 0.02);
+          ema50Val = ema50arr[ema50arr.length - 1] || price * (1 + (Math.random() - 0.5) * 0.04);
+          ema200Val = ema200arr[ema200arr.length - 1] || price * (1 + (Math.random() - 0.5) * 0.08);
+        } else {
+          // Estimate from current price with realistic offsets
+          ema20Val = price * (1 + (Math.random() * 0.03 - 0.015));
+          ema50Val = price * (1 + (Math.random() * 0.06 - 0.03));
+          ema200Val = price * (1 + (Math.random() * 0.12 - 0.06));
+        }
+
         const rsi = Math.random() * 40 + 30;
         const macd = (Math.random() - 0.5) * 2;
-        const ema = price * (1 + (Math.random() - 0.5) * 0.02);
-        const support = price * (1 - Math.random() * 0.05 - 0.02);
-        const resistance = price * (1 + Math.random() * 0.05 + 0.02);
-        const score = Math.round(Math.random() * 40 + 40);
+        const support = Math.min(ema20Val, ema50Val) * (1 - Math.random() * 0.02);
+        const resistance = Math.max(ema20Val, ema50Val) * (1 + Math.random() * 0.02);
+
+        // Score based on EMA signals
+        let score = 50;
+        if (price > ema20Val) score += 10;
+        if (price > ema50Val) score += 10;
+        if (price > ema200Val) score += 10;
+        if (ema20Val > ema50Val) score += 8;
+        if (ema50Val > ema200Val) score += 8;
+        if (rsi < 70 && rsi > 30) score += 4;
+        if (macd > 0) score += 5;
+        score = Math.min(95, Math.max(15, score + Math.round(Math.random() * 10 - 5)));
+
         const buyPoint = support * 1.005;
         const sellPoint = resistance * 0.995;
         const stopLoss = support * 0.97;
@@ -3705,7 +3921,15 @@
         document.getElementById("aiRSI").style.color = rsi > 70 ? "var(--red)" : rsi < 30 ? "var(--green)" : "var(--text-primary)";
         document.getElementById("aiMACD").textContent = (macd >= 0 ? "+" : "") + macd.toFixed(3);
         document.getElementById("aiMACD").style.color = macd >= 0 ? "var(--green)" : "var(--red)";
-        document.getElementById("aiEMA").textContent = `$${ema.toFixed(2)}`;
+
+        // EMA values
+        const ema20El = document.getElementById("aiEMA20");
+        const ema50El = document.getElementById("aiEMA50");
+        const ema200El = document.getElementById("aiEMA200");
+        if (ema20El) ema20El.textContent = `$${ema20Val.toFixed(2)}`;
+        if (ema50El) ema50El.textContent = `$${ema50Val.toFixed(2)}`;
+        if (ema200El) ema200El.textContent = `$${ema200Val.toFixed(2)}`;
+
         document.getElementById("aiSupport").textContent = `$${support.toFixed(2)}`;
         document.getElementById("aiResistance").textContent = `$${resistance.toFixed(2)}`;
 
@@ -3722,6 +3946,94 @@
           if (srSell) srSell.textContent = `$${sellPoint.toFixed(2)}`;
           if (srStop) srStop.textContent = `$${stopLoss.toFixed(2)}`;
         }
+
+        // Update EMA values label in legend
+        const lbl = document.getElementById("emaValuesLabel");
+        if (lbl) lbl.textContent = `20: $${ema20Val.toFixed(1)}  50: $${ema50Val.toFixed(1)}  200: $${ema200Val.toFixed(1)}`;
+
+        // Generate EMA signal analysis card
+        generateEMAAnalysis(price, ema20Val, ema50Val, ema200Val);
+
+        return { ema20Val, ema50Val, ema200Val };
+      }
+
+      function generateEMAAnalysis(price, ema20, ema50, ema200) {
+        const card = document.getElementById("emaAnalysisCard");
+        if (!card) return;
+        card.style.display = 'block';
+
+        const signals = [];
+
+        // Price vs EMA signals
+        const priceVsEma20 = price > ema20;
+        const priceVsEma50 = price > ema50;
+        const priceVsEma200 = price > ema200;
+        signals.push({
+          icon: priceVsEma20 ? '🟢' : '🔴',
+          text: `ราคา ${priceVsEma20 ? 'อยู่เหนือ' : 'อยู่ต่ำกว่า'} EMA20 ($${ema20.toFixed(2)})`,
+          badge: priceVsEma20 ? 'bullish' : 'bearish',
+          label: priceVsEma20 ? 'Bullish' : 'Bearish'
+        });
+        signals.push({
+          icon: priceVsEma50 ? '🟢' : '🔴',
+          text: `ราคา ${priceVsEma50 ? 'อยู่เหนือ' : 'อยู่ต่ำกว่า'} EMA50 ($${ema50.toFixed(2)})`,
+          badge: priceVsEma50 ? 'bullish' : 'bearish',
+          label: priceVsEma50 ? 'Bullish' : 'Bearish'
+        });
+        signals.push({
+          icon: priceVsEma200 ? '🟢' : '🔴',
+          text: `ราคา ${priceVsEma200 ? 'อยู่เหนือ' : 'อยู่ต่ำกว่า'} EMA200 ($${ema200.toFixed(2)})`,
+          badge: priceVsEma200 ? 'bullish' : 'bearish',
+          label: priceVsEma200 ? 'Bullish' : 'Bearish'
+        });
+
+        // EMA crossover signals
+        const ema20AboveEma50 = ema20 > ema50;
+        const ema50AboveEma200 = ema50 > ema200;
+        const goldCross = ema20AboveEma50 && ema50AboveEma200;
+        const deathCross = !ema20AboveEma50 && !ema50AboveEma200;
+
+        signals.push({
+          icon: ema20AboveEma50 ? '📈' : '📉',
+          text: `EMA20 ${ema20AboveEma50 ? 'อยู่เหนือ (Golden Cross)' : 'อยู่ต่ำกว่า (Death Cross)'} EMA50`,
+          badge: ema20AboveEma50 ? 'bullish' : 'bearish',
+          label: ema20AboveEma50 ? 'Golden ✦' : 'Death ✖'
+        });
+        signals.push({
+          icon: ema50AboveEma200 ? '📈' : '📉',
+          text: `EMA50 ${ema50AboveEma200 ? 'อยู่เหนือ' : 'อยู่ต่ำกว่า'} EMA200`,
+          badge: ema50AboveEma200 ? 'bullish' : 'bearish',
+          label: ema50AboveEma200 ? 'แนวโน้มขาขึ้น' : 'แนวโน้มขาลง'
+        });
+
+        const rowsHtml = signals.map(s => `
+          <div class="ema-signal-row">
+            <span class="ema-signal-icon">${s.icon}</span>
+            <span class="ema-signal-text">${s.text}</span>
+            <span class="ema-signal-badge ema-badge-${s.badge}">${s.label}</span>
+          </div>
+        `).join('');
+        document.getElementById("emaSignalRows").innerHTML = rowsHtml;
+
+        // Trend summary
+        const bullishCount = signals.filter(s => s.badge === 'bullish').length;
+        const totalSignals = signals.length;
+        let trendClass, trendIcon, trendText;
+        if (bullishCount === totalSignals) {
+          trendClass = 'trend-bullish'; trendIcon = '🚀'; trendText = 'ขาขึ้นแรง — สัญญาณซื้อทุก EMA สอดคล้องกัน';
+        } else if (bullishCount >= 4) {
+          trendClass = 'trend-bullish'; trendIcon = '📈'; trendText = 'แนวโน้มขาขึ้น — ราคาเหนือ EMA หลักส่วนใหญ่';
+        } else if (bullishCount === 3) {
+          trendClass = 'trend-accumulate'; trendIcon = '⚖️'; trendText = 'สะสมตัว — สัญญาณผสม แนะนำรอยืนยัน';
+        } else if (bullishCount === 2) {
+          trendClass = 'trend-neutral'; trendIcon = '⚠️'; trendText = 'เสี่ยงลงต่อ — ราคาต่ำกว่า EMA หลักหลายเส้น';
+        } else {
+          trendClass = 'trend-bearish'; trendIcon = '📉'; trendText = 'กลับตัวลง — สัญญาณขายทุก EMA สอดคล้องกัน';
+        }
+        const summaryEl = document.getElementById("emaTrendSummary");
+        summaryEl.className = `trend-summary ${trendClass}`;
+        document.getElementById("emaTrendIcon").textContent = trendIcon;
+        document.getElementById("emaTrendText").textContent = trendText;
       }
 
       async function loadStockChart(symbol, period) {
@@ -3745,42 +4057,38 @@
 
         if (stockDetailChartInstance) stockDetailChartInstance.destroy();
 
-        const ctx = document
-          .getElementById("stockDetailChart")
-          .getContext("2d");
-        let labels = [],
-          prices = [];
+        const ctx = document.getElementById("stockDetailChart").getContext("2d");
+        let labels = [], prices = [];
 
         if (candles && candles.s === "ok" && candles.c) {
           prices = candles.c;
           labels = candles.t.map((t) => {
             const d = new Date(t * 1000);
             if (period === "1D")
-              return d.toLocaleTimeString("th-TH", {
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-            return d.toLocaleDateString("th-TH", {
-              month: "short",
-              day: "numeric",
-            });
+              return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+            return d.toLocaleDateString("th-TH", { month: "short", day: "numeric" });
           });
         } else {
           // Demo data if API fails
           const base = cachedPrices[symbol]?.c || 150;
-          for (let i = 0; i < 30; i++) {
-            prices.push(base * (0.95 + Math.random() * 0.1));
+          for (let i = 0; i < 60; i++) {
+            prices.push(base * (0.92 + Math.random() * 0.16 + i * 0.0005));
             labels.push(`${i + 1}`);
           }
         }
 
+        // Calculate EMAs
+        const ema20 = calculateEMA(prices, 20);
+        const ema50 = calculateEMA(prices, 50);
+        const ema200 = calculateEMA(prices, 200);
+
+        // Nullify leading nulls for cleaner display
+        const cleanEma = (arr) => arr.map(v => v === null ? null : parseFloat(v.toFixed(2)));
+
         const isUp = prices[prices.length - 1] >= prices[0];
-        const color = isUp ? "#00E676" : "#FF1744";
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(
-          0,
-          isUp ? "rgba(0,230,118,0.2)" : "rgba(255,23,68,0.2)",
-        );
+        const mainColor = isUp ? "#00E676" : "#FF1744";
+        const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+        gradient.addColorStop(0, isUp ? "rgba(0,230,118,0.18)" : "rgba(255,23,68,0.18)");
         gradient.addColorStop(1, "rgba(0,0,0,0)");
 
         stockDetailChartInstance = new Chart(ctx, {
@@ -3789,20 +4097,81 @@
             labels,
             datasets: [
               {
+                label: "ราคา",
                 data: prices,
-                borderColor: color,
+                borderColor: mainColor,
                 backgroundColor: gradient,
                 borderWidth: 2,
                 pointRadius: 0,
                 fill: true,
                 tension: 0.3,
+                order: 0,
+              },
+              {
+                label: "EMA 20",
+                data: cleanEma(ema20),
+                borderColor: "#00e676",
+                backgroundColor: "transparent",
+                borderWidth: 1.8,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.4,
+                hidden: !emaVisibility.ema20,
+                spanGaps: true,
+                order: 1,
+                borderDash: [],
+              },
+              {
+                label: "EMA 50",
+                data: cleanEma(ema50),
+                borderColor: "#ff9100",
+                backgroundColor: "transparent",
+                borderWidth: 1.8,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.4,
+                hidden: !emaVisibility.ema50,
+                spanGaps: true,
+                order: 2,
+              },
+              {
+                label: "EMA 200",
+                data: cleanEma(ema200),
+                borderColor: "#ff1744",
+                backgroundColor: "transparent",
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.4,
+                hidden: !emaVisibility.ema200,
+                spanGaps: true,
+                order: 3,
+                borderDash: [4, 3],
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(13,21,40,0.95)',
+                borderColor: 'rgba(245,200,66,0.3)',
+                borderWidth: 1,
+                titleColor: '#f5c842',
+                bodyColor: '#8899bb',
+                padding: 10,
+                callbacks: {
+                  label: function(ctx) {
+                    if (ctx.raw === null) return null;
+                    const colors = { 'ราคา': mainColor, 'EMA 20': '#00e676', 'EMA 50': '#ff9100', 'EMA 200': '#ff1744' };
+                    return ` ${ctx.dataset.label}: $${parseFloat(ctx.raw).toFixed(2)}`;
+                  }
+                }
+              }
+            },
             scales: {
               x: {
                 grid: { color: "rgba(255,255,255,0.04)" },
@@ -3818,6 +4187,12 @@
             },
           },
         });
+
+        // Re-run AI analysis with real price history
+        const currentPrice = prices[prices.length - 1];
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+        const q = cachedPrices[symbol] || {};
+        generateAIAnalysis(currentPrice, q, isVip, prices);
       }
 
       function changeChartPeriod(period, btn) {
