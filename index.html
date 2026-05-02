@@ -1,0 +1,2395 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ร่ำรวยหุ้น AI - ระบบวิเคราะห์หุ้นอัจฉริยะ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --gold: #F5C842;
+  --gold-light: #FFE082;
+  --gold-dark: #C9A227;
+  --navy: #0A0F1E;
+  --navy-mid: #0D1528;
+  --navy-card: #111827;
+  --navy-border: #1E2D45;
+  --blue-accent: #1A6BE0;
+  --blue-glow: #2979FF;
+  --teal: #00BCD4;
+  --green: #00E676;
+  --red: #FF1744;
+  --orange: #FF9100;
+  --text-primary: #F0F4FF;
+  --text-secondary: #8899BB;
+  --text-muted: #4A5A7A;
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--navy);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 20% 20%, rgba(26,107,224,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(245,200,66,0.05) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+.page { display: none; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* NAVBAR */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: rgba(10,15,30,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--gold-dark);
+  padding: 0 24px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--gold);
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-brand span { color: var(--text-primary); }
+.nav-brand .logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--navy);
+}
+.nav-menu {
+  display: flex; align-items: center; gap: 4px;
+  list-style: none;
+}
+.nav-menu a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px; font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-menu a:hover, .nav-menu a.active {
+  color: var(--gold); background: rgba(245,200,66,0.08);
+}
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.btn {
+  padding: 8px 18px; border-radius: 8px;
+  font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600;
+  border: none; cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--navy);
+}
+.btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(245,200,66,0.3); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--navy-border);
+  color: var(--text-secondary);
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { color: var(--gold); }
+.btn-danger { background: rgba(255,23,68,0.15); color: var(--red); border: 1px solid rgba(255,23,68,0.3); }
+.btn-danger:hover { background: rgba(255,23,68,0.25); }
+.btn-sm { padding: 5px 12px; font-size: 13px; }
+.btn-xs { padding: 3px 8px; font-size: 12px; }
+
+/* HAMBURGER */
+.hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--text-primary); font-size: 22px; }
+
+/* SIDEBAR MOBILE */
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
+.sidebar-overlay.show { display: block; }
+.sidebar {
+  position: fixed; top: 0; left: -280px; height: 100vh; width: 280px;
+  background: var(--navy-card);
+  border-right: 1px solid var(--navy-border);
+  z-index: 1001; transition: left 0.3s; padding: 20px;
+  overflow-y: auto;
+}
+.sidebar.open { left: 0; }
+.sidebar-close { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; float: right; }
+.sidebar-menu { list-style: none; margin-top: 20px; }
+.sidebar-menu li a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; color: var(--text-secondary);
+  text-decoration: none; border-radius: 8px; margin-bottom: 4px;
+  font-size: 15px; cursor: pointer; transition: all 0.2s;
+}
+.sidebar-menu li a:hover, .sidebar-menu li a.active {
+  color: var(--gold); background: rgba(245,200,66,0.08);
+}
+
+/* MAIN CONTENT */
+main { margin-top: 64px; min-height: calc(100vh - 64px); position: relative; z-index: 1; }
+
+/* HERO */
+.hero {
+  padding: 80px 24px 60px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(245,200,66,0.06) 0%, transparent 70%);
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 50px; padding: 6px 16px; margin-bottom: 24px;
+  font-size: 13px; color: var(--gold);
+}
+.hero h1 {
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: 800; line-height: 1.1;
+  background: linear-gradient(135deg, #fff 0%, var(--gold-light) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+.hero p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto 36px; }
+.hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-hero {
+  padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.3s;
+}
+.btn-hero-primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--navy);
+}
+.btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,200,66,0.35); }
+.btn-hero-secondary {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+.btn-hero-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+
+/* STATS BAR */
+.stats-bar {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 16px 24px; margin: 0 24px;
+  display: flex; gap: 0; overflow-x: auto;
+}
+.stat-item {
+  flex: 1; min-width: 120px; text-align: center;
+  padding: 8px 16px; border-right: 1px solid var(--glass-border);
+}
+.stat-item:last-child { border-right: none; }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.stat-value { font-family: 'Share Tech Mono', monospace; font-size: 16px; font-weight: 700; margin-top: 4px; }
+.up { color: var(--green); }
+.down { color: var(--red); }
+.neutral { color: var(--text-secondary); }
+
+/* CARDS GRID */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: rgba(245,200,66,0.3); transform: translateY(-2px); }
+.card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245,200,66,0.3), transparent);
+}
+.card-glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 24px;
+}
+.card-title {
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title i { color: var(--gold); }
+
+/* STOCK TICKER */
+.ticker-wrap {
+  overflow: hidden; background: rgba(245,200,66,0.05);
+  border-top: 1px solid rgba(245,200,66,0.15);
+  border-bottom: 1px solid rgba(245,200,66,0.15);
+  padding: 10px 0;
+}
+.ticker-track {
+  display: flex; gap: 48px;
+  animation: ticker 30s linear infinite;
+  white-space: nowrap; width: max-content;
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker-item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.ticker-symbol { font-family: 'Share Tech Mono', monospace; font-weight: 700; color: var(--gold); }
+.ticker-price { font-family: 'Share Tech Mono', monospace; }
+.ticker-change { font-size: 12px; padding: 2px 6px; border-radius: 4px; }
+.ticker-change.up { background: rgba(0,230,118,0.15); color: var(--green); }
+.ticker-change.down { background: rgba(255,23,68,0.15); color: var(--red); }
+
+/* STOCK CARD */
+.stock-card {
+  background: var(--navy-card); border: 1px solid var(--navy-border);
+  border-radius: 12px; padding: 16px; cursor: pointer;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.stock-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.stock-card .symbol { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--gold); }
+.stock-card .name { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.stock-card .price { font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700; margin-top: 10px; }
+.stock-card .change { font-size: 13px; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 6px; }
+.stock-mini-chart { height: 50px; margin-top: 10px; }
+
+/* SEARCH */
+.search-box {
+  display: flex; gap: 10px; align-items: center;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 12px 16px;
+  margin-bottom: 24px;
+}
+.search-box input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text-primary); font-family: 'Sarabun', sans-serif; font-size: 16px;
+}
+.search-box input::placeholder { color: var(--text-muted); }
+.search-box button { background: var(--gold); border: none; color: var(--navy); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500; }
+.form-control {
+  width: 100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--navy-border);
+  border-radius: 8px; color: var(--text-primary);
+  font-family: 'Sarabun', sans-serif; font-size: 15px;
+  transition: border-color 0.2s; outline: none;
+}
+.form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,200,66,0.1); }
+.form-control::placeholder { color: var(--text-muted); }
+select.form-control option { background: var(--navy-card); }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 2000;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--navy-card); border: 1px solid var(--navy-border);
+  border-radius: 20px; padding: 32px; width: 100%; max-width: 440px;
+  position: relative; animation: modalIn 0.3s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.06); border: none; color: var(--text-secondary);
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { color: var(--text-primary); background: rgba(255,255,255,0.1); }
+.modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.modal p { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+
+/* BADGE / TAG */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 50px; font-size: 12px; font-weight: 600; }
+.badge-gold { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+.badge-green { background: rgba(0,230,118,0.15); color: var(--green); }
+.badge-red { background: rgba(255,23,68,0.15); color: var(--red); }
+.badge-blue { background: rgba(41,121,255,0.15); color: var(--blue-glow); }
+.badge-gray { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); font-weight: 600;
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--navy-border);
+}
+td {
+  padding: 12px 14px; font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* CHART AREA */
+.chart-wrap { position: relative; height: 300px; }
+.chart-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.chart-tab {
+  padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--navy-border); background: none; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.2s;
+}
+.chart-tab.active { background: rgba(245,200,66,0.15); border-color: var(--gold); color: var(--gold); }
+
+/* AI METER */
+.ai-score {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: conic-gradient(var(--green) var(--pct), rgba(255,255,255,0.06) var(--pct));
+  display: flex; align-items: center; justify-content: center;
+  position: relative; margin: 0 auto 16px;
+}
+.ai-score-inner {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--navy-card);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+.ai-score-value { font-family: 'Share Tech Mono', monospace; font-size: 28px; font-weight: 700; }
+.ai-score-label { font-size: 10px; color: var(--text-muted); }
+
+/* INDICATOR ROW */
+.indicator-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.indicator-row:last-child { border-bottom: none; }
+.indicator-name { font-size: 13px; color: var(--text-secondary); }
+.indicator-val { font-family: 'Share Tech Mono', monospace; font-size: 14px; font-weight: 600; }
+
+/* NEWS */
+.news-item {
+  padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  display: flex; gap: 14px; cursor: pointer;
+}
+.news-item:last-child { border-bottom: none; }
+.news-item-thumb {
+  width: 72px; height: 56px; border-radius: 8px;
+  background: var(--navy-border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--text-muted);
+}
+.news-title { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+.news-meta { font-size: 12px; color: var(--text-muted); }
+.news-source { color: var(--gold); font-weight: 600; }
+
+/* PORTFOLIO */
+.pf-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.pf-symbol { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: var(--gold); min-width: 70px; }
+.pf-info { flex: 1; }
+.pf-name { font-size: 12px; color: var(--text-muted); }
+.pf-qty { font-size: 13px; color: var(--text-secondary); }
+.pf-price { text-align: right; }
+.pf-current { font-family: 'Share Tech Mono', monospace; font-size: 16px; }
+.pf-pnl { font-size: 13px; }
+
+/* SECTION HEADERS */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.section-title { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section-title::before { content: ''; width: 4px; height: 24px; background: var(--gold); border-radius: 2px; display: inline-block; }
+
+/* PROGRESS BAR */
+.progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue-glow), var(--teal)); transition: width 0.5s; }
+
+/* ALERT */
+.alert {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px; border-radius: 10px; margin-bottom: 10px;
+}
+.alert-success { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.2); }
+.alert-warning { background: rgba(255,145,0,0.08); border: 1px solid rgba(255,145,0,0.2); }
+.alert-danger { background: rgba(255,23,68,0.08); border: 1px solid rgba(255,23,68,0.2); }
+.alert i { font-size: 16px; margin-top: 2px; }
+.alert-success i { color: var(--green); }
+.alert-warning i { color: var(--orange); }
+.alert-danger i { color: var(--red); }
+
+/* VIP */
+.vip-card {
+  background: linear-gradient(135deg, #1a0a00, #2a1500);
+  border: 1px solid var(--gold-dark);
+  border-radius: 20px; padding: 32px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.vip-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(245,200,66,0.12) 0%, transparent 60%);
+}
+.vip-icon { font-size: 48px; margin-bottom: 16px; }
+.vip-title { font-size: 28px; font-weight: 800; color: var(--gold); }
+.vip-price { font-size: 40px; font-weight: 800; color: var(--text-primary); margin: 12px 0; }
+.vip-price span { font-size: 16px; color: var(--text-muted); }
+.vip-feature { display: flex; align-items: center; gap: 10px; padding: 8px 0; text-align: left; }
+.vip-feature i { color: var(--gold); width: 20px; }
+
+/* ADMIN */
+.admin-stat {
+  background: var(--navy-card); border: 1px solid var(--navy-border);
+  border-radius: 12px; padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.admin-stat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+
+/* FOOTER */
+footer {
+  background: var(--navy-card); border-top: 1px solid var(--navy-border);
+  padding: 32px 24px; text-align: center;
+  color: var(--text-muted); font-size: 13px; margin-top: 60px;
+}
+footer .footer-brand { color: var(--gold); font-weight: 700; font-size: 18px; margin-bottom: 8px; }
+
+/* LOADING */
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(245,200,66,0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(10,15,30,0.9);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+.loading-overlay .spinner { width: 48px; height: 48px; border-width: 3px; }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--navy-border); margin-bottom: 24px; gap: 0; }
+.tab-btn {
+  padding: 12px 20px; font-size: 14px; font-weight: 600;
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s; margin-bottom: -1px;
+}
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .nav-menu { display: none; }
+  .hamburger { display: block; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .hero { padding: 48px 16px 40px; }
+  .hero h1 { font-size: 28px; }
+  .container { padding: 0 16px; }
+  .modal { padding: 24px; }
+  .stats-bar { margin: 0 16px; }
+}
+@media (max-width: 480px) {
+  .hero p { font-size: 15px; }
+  .btn-hero { padding: 12px 22px; font-size: 14px; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* USER MENU */
+.user-menu-wrap { position: relative; }
+.user-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: var(--navy); font-weight: 700; font-size: 14px; cursor: pointer;
+  border: 2px solid var(--navy-border); transition: border-color 0.2s;
+}
+.user-avatar:hover { border-color: var(--gold); }
+.user-dropdown {
+  position: absolute; top: 44px; right: 0;
+  background: var(--navy-card); border: 1px solid var(--navy-border);
+  border-radius: 12px; padding: 8px; min-width: 200px;
+  display: none; z-index: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.user-dropdown.show { display: block; }
+.user-dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 14px; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.2s;
+}
+.user-dropdown-item:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.user-dropdown-item.danger { color: var(--red); }
+.user-info { padding: 10px 12px 12px; border-bottom: 1px solid var(--navy-border); margin-bottom: 4px; }
+.user-info-name { font-weight: 700; font-size: 15px; }
+.user-info-role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* NOTIFICATION DOT */
+.notif-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; display: inline-block; margin-left: -6px; margin-top: -12px; }
+
+/* SECTION PADDING */
+.section { padding: 32px 0; }
+
+/* GLOW BUTTON */
+.btn-glow {
+  background: linear-gradient(135deg, var(--blue-glow), var(--teal));
+  color: #fff; border: none;
+}
+.btn-glow:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(41,121,255,0.35); }
+
+/* TOGGLE */
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.toggle {
+  width: 44px; height: 24px; background: var(--navy-border); border-radius: 12px;
+  position: relative; cursor: pointer; transition: background 0.2s;
+}
+.toggle.on { background: var(--gold); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; transition: left 0.2s;
+}
+.toggle.on::after { left: 23px; }
+
+/* FAVORITE BUTTON */
+.fav-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: var(--text-muted); transition: color 0.2s;
+}
+.fav-btn.active { color: var(--gold); }
+.fav-btn:hover { color: var(--gold); }
+
+/* RECOMMENDATION CARD */
+.rec-card {
+  background: linear-gradient(135deg, rgba(41,121,255,0.08), rgba(0,188,212,0.08));
+  border: 1px solid rgba(41,121,255,0.2);
+  border-radius: 12px; padding: 16px;
+}
+.rec-signal {
+  font-size: 18px; font-weight: 800; letter-spacing: 1px;
+}
+.rec-buy { color: var(--green); }
+.rec-sell { color: var(--red); }
+.rec-hold { color: var(--orange); }
+
+/* HIDDEN */
+.d-none { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p style="color: var(--text-secondary); font-size: 14px;">กำลังโหลดระบบ...</p>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="nav-brand" onclick="showPage('home')">
+    <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+    ร่ำรวยหุ้น<span>AI</span>
+  </a>
+  <ul class="nav-menu" id="navMenu">
+    <li><a onclick="showPage('home')" id="nav-home"><i class="fas fa-home"></i> หน้าแรก</a></li>
+    <li id="navDashboardItem" class="d-none"><a onclick="showPage('dashboard')" id="nav-dashboard"><i class="fas fa-chart-pie"></i> แดชบอร์ด</a></li>
+    <li><a onclick="showPage('stocks')" id="nav-stocks"><i class="fas fa-chart-bar"></i> หุ้น</a></li>
+    <li><a onclick="showPage('news')" id="nav-news"><i class="fas fa-newspaper"></i> ข่าว</a></li>
+    <li id="navFavItem" class="d-none"><a onclick="showPage('favorites')" id="nav-favorites"><i class="fas fa-heart"></i> โปรด</a></li>
+    <li id="navPortItem" class="d-none"><a onclick="showPage('portfolio')" id="nav-portfolio"><i class="fas fa-briefcase"></i> พอร์ต</a></li>
+    <li><a onclick="showPage('vip')" id="nav-vip"><i class="fas fa-crown"></i> VIP</a></li>
+    <li id="navAdminItem" class="d-none"><a onclick="showPage('admin')" id="nav-admin"><i class="fas fa-cog"></i> แอดมิน</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div id="navGuest">
+      <button class="btn btn-outline btn-sm" onclick="showModal('loginModal')"><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</button>
+      <button class="btn btn-gold btn-sm" onclick="showModal('registerModal')"><i class="fas fa-user-plus"></i> สมัครสมาชิก</button>
+    </div>
+    <div id="navUser" class="d-none">
+      <div class="user-menu-wrap">
+        <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">?</div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info">
+            <div class="user-info-name" id="ddUserName">-</div>
+            <div class="user-info-role" id="ddUserRole">-</div>
+          </div>
+          <div class="user-dropdown-item" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i> แดชบอร์ด</div>
+          <div class="user-dropdown-item" onclick="showPage('portfolio')"><i class="fas fa-briefcase"></i> พอร์ตลงทุน</div>
+          <div class="user-dropdown-item" onclick="showModal('alertModal')"><i class="fas fa-bell"></i> แจ้งเตือน</div>
+          <div class="user-dropdown-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</div>
+        </div>
+      </div>
+    </div>
+    <button class="hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <button class="sidebar-close" onclick="closeSidebar()"><i class="fas fa-times"></i></button>
+  <div style="margin-bottom: 20px;">
+    <div class="nav-brand" style="font-size: 18px;"><div class="logo-icon"><i class="fas fa-chart-line"></i></div> หุ้นไทย<span style="color:white">AI</span></div>
+  </div>
+  <ul class="sidebar-menu" id="sidebarMenu">
+    <li><a onclick="showPage('home');closeSidebar()"><i class="fas fa-home"></i> หน้าแรก</a></li>
+    <li class="sb-auth d-none"><a onclick="showPage('dashboard');closeSidebar()"><i class="fas fa-chart-pie"></i> แดชบอร์ด</a></li>
+    <li><a onclick="showPage('stocks');closeSidebar()"><i class="fas fa-chart-bar"></i> หุ้น</a></li>
+    <li><a onclick="showPage('news');closeSidebar()"><i class="fas fa-newspaper"></i> ข่าว</a></li>
+    <li class="sb-auth d-none"><a onclick="showPage('favorites');closeSidebar()"><i class="fas fa-heart"></i> หุ้นโปรด</a></li>
+    <li class="sb-auth d-none"><a onclick="showPage('portfolio');closeSidebar()"><i class="fas fa-briefcase"></i> พอร์ตลงทุน</a></li>
+    <li><a onclick="showPage('vip');closeSidebar()"><i class="fas fa-crown"></i> สมาชิก VIP</a></li>
+    <li class="sb-admin d-none"><a onclick="showPage('admin');closeSidebar()"><i class="fas fa-cog"></i> แอดมิน</a></li>
+  </ul>
+</div>
+
+<!-- ===== MODALS ===== -->
+<!-- LOGIN -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:36px; margin-bottom:8px;">🔐</div>
+      <h2>เข้าสู่ระบบ</h2>
+      <p>ยินดีต้อนรับกลับมา</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ชื่อผู้ใช้</label>
+      <input class="form-control" id="loginUsername" type="text" placeholder="กรอกชื่อผู้ใช้" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">รหัสผ่าน</label>
+      <input class="form-control" id="loginPassword" type="password" placeholder="กรอกรหัสผ่าน" />
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <input type="checkbox" id="rememberMe" style="accent-color:var(--gold);">
+      <label for="rememberMe" style="font-size:14px; color:var(--text-secondary);">จำฉันไว้</label>
+    </div>
+    <button class="btn btn-gold" style="width:100%; padding:13px;" onclick="login()"><i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</button>
+    <p style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-muted);">
+      ยังไม่มีบัญชี? <a onclick="closeModal('loginModal');showModal('registerModal')" style="color:var(--gold);cursor:pointer;">สมัครสมาชิก</a>
+    </p>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('registerModal')"><i class="fas fa-times"></i></button>
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:36px; margin-bottom:8px;">👤</div>
+      <h2>สมัครสมาชิก</h2>
+      <p>สร้างบัญชีใหม่ฟรี</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ชื่อ-นามสกุล</label>
+      <input class="form-control" id="regName" type="text" placeholder="ชื่อของคุณ" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">ชื่อผู้ใช้</label>
+      <input class="form-control" id="regUsername" type="text" placeholder="username (ภาษาอังกฤษ)" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">รหัสผ่าน</label>
+      <input class="form-control" id="regPassword" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" />
+    </div>
+    <button class="btn btn-gold" style="width:100%; padding:13px;" onclick="register()"><i class="fas fa-user-plus"></i> สมัครสมาชิก</button>
+    <p style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-muted);">
+      มีบัญชีแล้ว? <a onclick="closeModal('registerModal');showModal('loginModal')" style="color:var(--gold);cursor:pointer;">เข้าสู่ระบบ</a>
+    </p>
+  </div>
+</div>
+
+<!-- STOCK DETAIL MODAL -->
+<div class="modal-overlay" id="stockDetailModal">
+  <div class="modal" style="max-width: 640px;">
+    <button class="modal-close" onclick="closeModal('stockDetailModal')"><i class="fas fa-times"></i></button>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h2 id="sdSymbol" style="font-family:'Rajdhani'; font-size:28px; color:var(--gold);">-</h2>
+          <button class="fav-btn" id="sdFavBtn" onclick="toggleFavorite()"><i class="fas fa-heart"></i></button>
+        </div>
+        <p id="sdName" style="color:var(--text-muted); margin:0; font-size:14px;">-</p>
+      </div>
+      <div style="text-align:right;">
+        <div id="sdPrice" style="font-family:'Share Tech Mono'; font-size:28px; font-weight:700;">-</div>
+        <div id="sdChange" class="badge" style="margin-top:4px;">-</div>
+      </div>
+    </div>
+    <div class="chart-tabs">
+      <button class="chart-tab active" onclick="changeChartPeriod('1D',this)">1D</button>
+      <button class="chart-tab" onclick="changeChartPeriod('1W',this)">1W</button>
+      <button class="chart-tab" onclick="changeChartPeriod('1M',this)">1M</button>
+      <button class="chart-tab" onclick="changeChartPeriod('3M',this)">3M</button>
+    </div>
+    <div class="chart-wrap" style="height:220px; margin-bottom:16px;">
+      <canvas id="stockDetailChart"></canvas>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:16px;">
+      <div class="card" style="padding:14px;">
+        <div class="card-title"><i class="fas fa-robot"></i> AI วิเคราะห์</div>
+        <div id="sdAI">
+          <div style="text-align:center;">
+            <div class="ai-score" id="aiScoreCircle" style="--pct: 0deg;">
+              <div class="ai-score-inner">
+                <div class="ai-score-value" id="aiScoreVal">-</div>
+                <div class="ai-score-label">คะแนน</div>
+              </div>
+            </div>
+            <div id="aiSignal" class="rec-signal" style="margin-bottom:8px;">-</div>
+          </div>
+          <div class="indicator-row"><span class="indicator-name">RSI (14)</span><span class="indicator-val" id="aiRSI">-</span></div>
+          <div class="indicator-row"><span class="indicator-name">MACD</span><span class="indicator-val" id="aiMACD">-</span></div>
+          <div class="indicator-row"><span class="indicator-name">EMA 20</span><span class="indicator-val" id="aiEMA">-</span></div>
+          <div class="indicator-row"><span class="indicator-name">แนวรับ</span><span class="indicator-val" id="aiSupport">-</span></div>
+          <div class="indicator-row"><span class="indicator-name">แนวต้าน</span><span class="indicator-val" id="aiResistance">-</span></div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px;">
+        <div class="card-title"><i class="fas fa-info-circle"></i> ข้อมูลหุ้น</div>
+        <div class="indicator-row"><span class="indicator-name">Open</span><span class="indicator-val" id="sdOpen">-</span></div>
+        <div class="indicator-row"><span class="indicator-name">High</span><span class="indicator-val" id="sdHigh" style="color:var(--green)">-</span></div>
+        <div class="indicator-row"><span class="indicator-name">Low</span><span class="indicator-val" id="sdLow" style="color:var(--red)">-</span></div>
+        <div class="indicator-row"><span class="indicator-name">Volume</span><span class="indicator-val" id="sdVolume">-</span></div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-glow" style="width:100%; margin-bottom:8px;" onclick="addToPortfolioPrompt()"><i class="fas fa-plus"></i> เพิ่มในพอร์ต</button>
+          <button class="btn btn-outline" style="width:100%;" onclick="addAlertPrompt()"><i class="fas fa-bell"></i> ตั้งแจ้งเตือน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT MODAL -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('alertModal')"><i class="fas fa-times"></i></button>
+    <h2 style="margin-bottom:8px;"><i class="fas fa-bell" style="color:var(--gold)"></i> ตั้งการแจ้งเตือน</h2>
+    <p>แจ้งเตือนเมื่อราคาถึงเป้าหมาย</p>
+    <div class="form-group">
+      <label class="form-label">หุ้น (Symbol)</label>
+      <input class="form-control" id="alertSymbol" type="text" placeholder="เช่น AAPL, TSLA" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">ราคาเป้าหมาย (USD)</label>
+      <input class="form-control" id="alertPrice" type="number" placeholder="เช่น 150.00" />
+    </div>
+    <button class="btn btn-gold" style="width:100%; padding:13px;" onclick="saveAlert()"><i class="fas fa-bell"></i> บันทึกแจ้งเตือน</button>
+  </div>
+</div>
+
+<!-- PORTFOLIO ADD MODAL -->
+<div class="modal-overlay" id="addPortfolioModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addPortfolioModal')"><i class="fas fa-times"></i></button>
+    <h2 style="margin-bottom:8px;"><i class="fas fa-plus-circle" style="color:var(--gold)"></i> เพิ่มในพอร์ต</h2>
+    <p>บันทึกการลงทุนของคุณ</p>
+    <div class="form-group">
+      <label class="form-label">หุ้น</label>
+      <input class="form-control" id="pfSymbol" type="text" readonly />
+    </div>
+    <div class="form-group">
+      <label class="form-label">จำนวนหุ้น</label>
+      <input class="form-control" id="pfQty" type="number" placeholder="จำนวน" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">ราคาเฉลี่ย (USD)</label>
+      <input class="form-control" id="pfAvgCost" type="number" placeholder="ราคาที่ซื้อ" />
+    </div>
+    <button class="btn btn-gold" style="width:100%; padding:13px;" onclick="savePortfolio()"><i class="fas fa-save"></i> บันทึก</button>
+  </div>
+</div>
+
+<!-- MAIN PAGES -->
+<main>
+<!-- ===== HOME PAGE ===== -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge"><i class="fas fa-robot"></i> AI-Powered Stock Analysis</div>
+    <h1>วิเคราะห์หุ้นอัจฉริยะ<br>ด้วยเทคโนโลยี AI</h1>
+    <p>ระบบวิเคราะห์หุ้นแบบเรียลไทม์ พร้อม AI ช่วยตัดสินใจ รองรับหุ้นทั้งไทยและต่างประเทศ</p>
+    <div class="hero-actions">
+      <button class="btn-hero btn-hero-primary" onclick="showPage('stocks')"><i class="fas fa-chart-line"></i> ดูราคาหุ้น</button>
+      <button class="btn-hero btn-hero-secondary" onclick="showModal('registerModal')"><i class="fas fa-user-plus"></i> สมัครฟรี</button>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="tickerTrack">
+      <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price" id="t-AAPL">-</span><span class="ticker-change" id="tc-AAPL">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price" id="t-TSLA">-</span><span class="ticker-change" id="tc-TSLA">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price" id="t-NVDA">-</span><span class="ticker-change" id="tc-NVDA">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price" id="t-MSFT">-</span><span class="ticker-change" id="tc-MSFT">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price" id="t-AMZN">-</span><span class="ticker-change" id="tc-AMZN">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price" id="t-META">-</span><span class="ticker-change" id="tc-META">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">GOOGL</span><span class="ticker-price" id="t-GOOGL">-</span><span class="ticker-change" id="tc-GOOGL">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+    </div>
+  </div>
+
+  <div style="padding: 40px 0;">
+    <div class="container">
+      <!-- STATS -->
+      <div class="stats-bar" style="margin: 0 0 32px;">
+        <div class="stat-item"><div class="stat-label">SET Index</div><div class="stat-value neutral" id="setIndex">-</div></div>
+        <div class="stat-item"><div class="stat-label">ตลาดเปิด</div><div class="stat-value up">✓ เปิด</div></div>
+        <div class="stat-item"><div class="stat-label">หุ้นขึ้น</div><div class="stat-value up" id="statUp">-</div></div>
+        <div class="stat-item"><div class="stat-label">หุ้นลง</div><div class="stat-value down" id="statDown">-</div></div>
+        <div class="stat-item"><div class="stat-label">มูลค่าซื้อขาย</div><div class="stat-value neutral">24.8B</div></div>
+      </div>
+
+      <!-- FEATURED STOCKS -->
+      <div class="section-header">
+        <div class="section-title">หุ้นน่าสนใจ</div>
+        <button class="btn btn-outline btn-sm" onclick="showPage('stocks')">ดูทั้งหมด <i class="fas fa-arrow-right"></i></button>
+      </div>
+      <div class="grid grid-4" id="featuredStocks" style="margin-bottom:40px;">
+        <div class="stock-card" style="opacity:0.5"><div style="text-align:center; padding:20px;"><div class="spinner"></div></div></div>
+        <div class="stock-card" style="opacity:0.5"><div style="text-align:center; padding:20px;"><div class="spinner"></div></div></div>
+        <div class="stock-card" style="opacity:0.5"><div style="text-align:center; padding:20px;"><div class="spinner"></div></div></div>
+        <div class="stock-card" style="opacity:0.5"><div style="text-align:center; padding:20px;"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- FEATURES -->
+      <div class="section-header"><div class="section-title">ฟีเจอร์เด่น</div></div>
+      <div class="grid grid-3" style="margin-bottom:40px;">
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">🤖</div><h3 style="margin-bottom:8px;">AI วิเคราะห์หุ้น</h3><p style="color:var(--text-secondary); font-size:14px;">วิเคราะห์ด้วย RSI, MACD, EMA พร้อมคำแนะนำ ซื้อ/ถือ/ขาย แบบเรียลไทม์</p></div>
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">📈</div><h3 style="margin-bottom:8px;">ราคาหุ้นเรียลไทม์</h3><p style="color:var(--text-secondary); font-size:14px;">ราคาหุ้นอัปเดตสดจาก Finnhub API รองรับหุ้นสหรัฐ และหุ้นไทย</p></div>
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">💼</div><h3 style="margin-bottom:8px;">จัดการพอร์ต</h3><p style="color:var(--text-secondary); font-size:14px;">ติดตามกำไร-ขาดทุน คำนวณผลตอบแทนรวมพอร์ตลงทุนของคุณ</p></div>
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">🔔</div><h3 style="margin-bottom:8px;">แจ้งเตือนราคา</h3><p style="color:var(--text-secondary); font-size:14px;">ตั้งราคาเป้าหมาย ระบบจะแจ้งเตือนทันทีเมื่อราคาถึงเป้า</p></div>
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">📰</div><h3 style="margin-bottom:8px;">ข่าวหุ้น</h3><p style="color:var(--text-secondary); font-size:14px;">ข่าวสารหุ้นล่าสุด ทั้งตลาดไทยและต่างประเทศ อัปเดตสด</p></div>
+        <div class="card"><div style="font-size:32px; margin-bottom:12px;">👑</div><h3 style="margin-bottom:8px;">สมาชิก VIP</h3><p style="color:var(--text-secondary); font-size:14px;">ปลดล็อก AI เต็มระบบ หุ้นเด่นรายวัน แจ้งเตือนพิเศษ</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STOCKS PAGE ===== -->
+<div id="page-stocks" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">ตลาดหุ้น</div>
+      <div id="marketStatus" class="badge badge-green"><i class="fas fa-circle" style="font-size:8px;"></i> เปิดทำการ</div>
+    </div>
+    <div class="search-box">
+      <i class="fas fa-search" style="color:var(--text-muted)"></i>
+      <input type="text" id="stockSearch" placeholder="ค้นหาหุ้น เช่น AAPL, TSLA, NVDA..." onkeypress="if(event.key==='Enter')searchStock()"/>
+      <button onclick="searchStock()">ค้นหา</button>
+    </div>
+    <!-- QUICK SEARCH BUTTONS -->
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;">
+      <span style="font-size:13px; color:var(--text-muted); line-height:32px;">หุ้นยอดนิยม:</span>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('AAPL')">AAPL</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('TSLA')">TSLA</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('NVDA')">NVDA</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('MSFT')">MSFT</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('AMZN')">AMZN</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('META')">META</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('GOOGL')">GOOGL</button>
+      <button class="btn btn-outline btn-sm" onclick="openStockDetail('NFLX')">NFLX</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('stockTab','all',this)">ทั้งหมด</button>
+      <button class="tab-btn" onclick="switchTab('stockTab','us',this)">หุ้นสหรัฐ</button>
+      <button class="tab-btn" onclick="switchTab('stockTab','crypto',this)">Crypto</button>
+    </div>
+
+    <div class="grid grid-4" id="stocksGrid">
+      <div class="stock-card"><div style="text-align:center;padding:30px"><div class="spinner"></div><div style="margin-top:10px; color:var(--text-muted); font-size:13px">กำลังโหลด...</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD PAGE ===== -->
+<div id="page-dashboard" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">แดชบอร์ด</div>
+      <div><span id="dashWelcome" style="color:var(--text-secondary)">ยินดีต้อนรับ</span> <span id="dashVip" class="badge badge-gold d-none"><i class="fas fa-crown"></i> VIP</span></div>
+    </div>
+
+      <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="tickerTrack">
+      <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price" id="t-AAPL">-</span><span class="ticker-change" id="tc-AAPL">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price" id="t-TSLA">-</span><span class="ticker-change" id="tc-TSLA">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price" id="t-NVDA">-</span><span class="ticker-change" id="tc-NVDA">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price" id="t-MSFT">-</span><span class="ticker-change" id="tc-MSFT">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price" id="t-AMZN">-</span><span class="ticker-change" id="tc-AMZN">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price" id="t-META">-</span><span class="ticker-change" id="tc-META">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">GOOGL</span><span class="ticker-price" id="t-GOOGL">-</span><span class="ticker-change" id="tc-GOOGL">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+      <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">-</span><span class="ticker-change">-</span></div>
+    </div>
+  </div>
+  
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(0,230,118,0.1); color:var(--green)"><i class="fas fa-chart-line"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">มูลค่าพอร์ต</div><div style="font-size:20px; font-weight:700; font-family:'Share Tech Mono'" id="dashPortValue">$0</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(41,121,255,0.1); color:var(--blue-glow)"><i class="fas fa-heart"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">หุ้นโปรด</div><div style="font-size:20px; font-weight:700" id="dashFavCount">0</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(245,200,66,0.1); color:var(--gold)"><i class="fas fa-bell"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">การแจ้งเตือน</div><div style="font-size:20px; font-weight:700" id="dashAlertCount">0</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(255,23,68,0.1); color:var(--red)"><i class="fas fa-briefcase"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">หุ้นในพอร์ต</div><div style="font-size:20px; font-weight:700" id="dashPortCount">0</div></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <!-- PORTFOLIO CHART -->
+      <div class="card">
+        <div class="card-title"><i class="fas fa-chart-pie"></i> สัดส่วนพอร์ต</div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="portfolioChart"></canvas>
+        </div>
+      </div>
+      <!-- RECENT ALERTS -->
+      <div class="card">
+        <div class="card-title"><i class="fas fa-bell"></i> การแจ้งเตือน</div>
+        <div id="dashAlerts">
+          <div style="text-align:center; padding:30px; color:var(--text-muted)"><i class="fas fa-bell-slash" style="font-size:32px; display:block; margin-bottom:10px;"></i>ไม่มีการแจ้งเตือน</div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="showModal('alertModal')"><i class="fas fa-plus"></i> เพิ่มแจ้งเตือน</button>
+      </div>
+    </div>
+
+    <!-- FAVORITE STOCKS MINI -->
+    <div style="margin-top:24px;">
+      <div class="section-header">
+        <div class="section-title" style="font-size:18px;">หุ้นโปรดของฉัน</div>
+        <button class="btn btn-outline btn-sm" onclick="showPage('favorites')">ดูทั้งหมด</button>
+      </div>
+      <div id="dashFavStocks" class="grid grid-4">
+        <div style="color:var(--text-muted); font-size:14px; padding:20px 0;">ยังไม่มีหุ้นโปรด <a onclick="showPage('stocks')" style="color:var(--gold);cursor:pointer">เพิ่มตอนนี้</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAVORITES PAGE ===== -->
+<div id="page-favorites" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">หุ้นโปรด</div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('stocks')"><i class="fas fa-plus"></i> เพิ่มหุ้นโปรด</button>
+    </div>
+    <div class="grid grid-4" id="favoritesGrid">
+      <div style="color:var(--text-muted); font-size:14px;">กำลังโหลด...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTFOLIO PAGE ===== -->
+<div id="page-portfolio" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">พอร์ตลงทุน</div>
+    </div>
+    <!-- SUMMARY -->
+    <div class="grid grid-3" style="margin-bottom:24px;">
+      <div class="card" style="text-align:center">
+        <div class="card-title" style="justify-content:center"><i class="fas fa-wallet"></i> มูลค่ารวม</div>
+        <div style="font-family:'Share Tech Mono'; font-size:28px; font-weight:700; color:var(--gold)" id="pfTotalValue">$0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="card-title" style="justify-content:center"><i class="fas fa-chart-line"></i> กำไร/ขาดทุน</div>
+        <div style="font-family:'Share Tech Mono'; font-size:28px; font-weight:700;" id="pfTotalPnL">$0</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div class="card-title" style="justify-content:center"><i class="fas fa-percent"></i> ผลตอบแทน %</div>
+        <div style="font-family:'Share Tech Mono'; font-size:28px; font-weight:700;" id="pfTotalReturn">0%</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-list"></i> รายการหุ้น</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>หุ้น</th><th>จำนวน</th><th>ราคาเฉลี่ย</th><th>ราคาปัจจุบัน</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th></th></tr>
+          </thead>
+          <tbody id="portfolioTableBody">
+            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted)"><i class="fas fa-briefcase" style="font-size:32px; display:block; margin-bottom:10px;"></i>ยังไม่มีหุ้นในพอร์ต</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEWS PAGE ===== -->
+<div id="page-news" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">ข่าวหุ้น</div>
+      <div class="badge badge-blue"><i class="fas fa-rss"></i> Live Feed</div>
+    </div>
+    <div class="grid grid-2">
+      <div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="filterNews('all',this)">ทั้งหมด</button>
+          <button class="tab-btn" onclick="filterNews('positive',this)">ข่าวดี</button>
+          <button class="tab-btn" onclick="filterNews('negative',this)">ข่าวร้าย</button>
+        </div>
+        <div id="newsList">
+          <div style="text-align:center; padding:40px"><div class="spinner"></div><p style="margin-top:12px; color:var(--text-muted)">กำลังโหลดข่าว...</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title"><i class="fas fa-fire"></i> ข่าวเด่นวันนี้</div>
+          <div id="featuredNews"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-rss"></i> ข่าวจาก Finnhub</div>
+          <div id="finnhubNews"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIP PAGE ===== -->
+<div id="page-vip" class="page">
+  <div class="container section">
+    <div class="section-header" style="justify-content:center; text-align:center; display:block; margin-bottom:8px;">
+      <div class="section-title" style="justify-content:center; font-size:28px;">แผน VIP</div>
+      <p style="color:var(--text-secondary); margin-top:8px;">ปลดล็อกทุกฟีเจอร์พรีเมียม</p>
+    </div>
+    <div class="grid grid-3" style="margin-top:32px;">
+      <div class="card" style="text-align:center">
+        <div style="font-size:32px; margin-bottom:12px;">🌟</div>
+        <h3 style="margin-bottom:8px;">แผนฟรี</h3>
+        <div style="font-size:32px; font-weight:800; margin:12px 0;">฿0<span style="font-size:16px; color:var(--text-muted)">/เดือน</span></div>
+        <ul style="text-align:left; list-style:none; margin-bottom:24px;">
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--green)"></i> ดูราคาหุ้น</li>
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--green)"></i> ข่าวหุ้น (จำกัด)</li>
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--green)"></i> หุ้นโปรด (5 ตัว)</li>
+          <li class="vip-feature"><i class="fas fa-times" style="color:var(--red)"></i> AI วิเคราะห์เต็มระบบ</li>
+          <li class="vip-feature"><i class="fas fa-times" style="color:var(--red)"></i> แจ้งเตือนพิเศษ</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%">ใช้งานอยู่</button>
+      </div>
+      <div class="vip-card" style="transform:scale(1.03)">
+        <div class="badge badge-gold" style="margin-bottom:12px;"><i class="fas fa-crown"></i> แนะนำ</div>
+        <div style="font-size:32px; margin-bottom:12px;">👑</div>
+        <h3 class="vip-title" style="margin-bottom:8px;">VIP รายเดือน</h3>
+        <div class="vip-price">฿299<span>/เดือน</span></div>
+        <ul style="text-align:left; list-style:none; margin-bottom:24px; position:relative; z-index:1;">
+          <li class="vip-feature"><i class="fas fa-check"></i> AI วิเคราะห์เต็มระบบ</li>
+          <li class="vip-feature"><i class="fas fa-check"></i> หุ้นเด่นรายวัน</li>
+          <li class="vip-feature"><i class="fas fa-check"></i> แจ้งเตือนไม่จำกัด</li>
+          <li class="vip-feature"><i class="fas fa-check"></i> หุ้นโปรดไม่จำกัด</li>
+          <li class="vip-feature"><i class="fas fa-check"></i> รายงานพิเศษ</li>
+        </ul>
+        <button class="btn btn-gold" style="width:100%; position:relative; z-index:1;" onclick="subscribeVIP('monthly')"><i class="fas fa-crown"></i> สมัคร VIP</button>
+      </div>
+      <div class="card" style="text-align:center; border-color:rgba(41,121,255,0.3)">
+        <div style="font-size:32px; margin-bottom:12px;">💎</div>
+        <h3 style="margin-bottom:8px;">VIP รายปี</h3>
+        <div style="font-size:32px; font-weight:800; margin:12px 0; color:var(--blue-glow)">฿2,499<span style="font-size:16px; color:var(--text-muted)">/ปี</span></div>
+        <div class="badge badge-blue" style="margin-bottom:16px;">ประหยัด 30%</div>
+        <ul style="text-align:left; list-style:none; margin-bottom:24px;">
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--blue-glow)"></i> ทุกอย่างใน VIP</li>
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--blue-glow)"></i> เข้าถึงก่อน</li>
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--blue-glow)"></i> Support ตลอด 24/7</li>
+          <li class="vip-feature"><i class="fas fa-check" style="color:var(--blue-glow)"></i> ฟีเจอร์ใหม่ก่อนใคร</li>
+        </ul>
+        <button class="btn btn-glow" style="width:100%;" onclick="subscribeVIP('yearly')"><i class="fas fa-gem"></i> สมัครรายปี</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div id="page-admin" class="page">
+  <div class="container section">
+    <div class="section-header">
+      <div class="section-title">แผงแอดมิน</div>
+      <div class="badge badge-gold"><i class="fas fa-shield-alt"></i> Admin Mode</div>
+    </div>
+
+    <!-- ADMIN STATS -->
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(41,121,255,0.1); color:var(--blue-glow)"><i class="fas fa-users"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">สมาชิกทั้งหมด</div><div style="font-size:24px; font-weight:700" id="adminTotalUsers">-</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(245,200,66,0.1); color:var(--gold)"><i class="fas fa-crown"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">สมาชิก VIP</div><div style="font-size:24px; font-weight:700" id="adminVipUsers">-</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(0,230,118,0.1); color:var(--green)"><i class="fas fa-newspaper"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">ข่าวในระบบ</div><div style="font-size:24px; font-weight:700" id="adminNewsCount">-</div></div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-icon" style="background:rgba(255,23,68,0.1); color:var(--red)"><i class="fas fa-bell"></i></div>
+        <div><div style="font-size:12px; color:var(--text-muted)">การแจ้งเตือน</div><div style="font-size:24px; font-weight:700" id="adminAlertsCount">-</div></div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('adminTab','users',this)">จัดการสมาชิก</button>
+      <button class="tab-btn" onclick="switchTab('adminTab','news',this)">จัดการข่าว</button>
+      <button class="tab-btn" onclick="switchTab('adminTab','settings',this)">ตั้งค่า</button>
+    </div>
+
+    <!-- USERS TAB -->
+    <div id="adminTab-users" class="tab-content active">
+      <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="btn btn-gold btn-sm" onclick="showAddUserModal()"><i class="fas fa-user-plus"></i> เพิ่มสมาชิก</button>
+        <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()"><i class="fas fa-sync"></i> รีเฟรช</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ผู้ใช้</th><th>ชื่อ</th><th>สถานะ</th><th>VIP</th><th>Role</th><th>จัดการ</th></tr>
+            </thead>
+            <tbody id="adminUsersTable">
+              <tr><td colspan="6" style="text-align:center; padding:20px"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS TAB -->
+    <div id="adminTab-news" class="tab-content">
+      <div style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-plus"></i> เพิ่มข่าวใหม่</div>
+          <div class="form-group">
+            <label class="form-label">หัวข้อข่าว</label>
+            <input class="form-control" id="newsTitle" placeholder="หัวข้อข่าว..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">เนื้อหา</label>
+            <textarea class="form-control" id="newsContent" rows="3" placeholder="เนื้อหาข่าว..."></textarea>
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label">ประเภท</label>
+              <select class="form-control" id="newsType">
+                <option value="neutral">ทั่วไป</option>
+                <option value="positive">ข่าวดี</option>
+                <option value="negative">ข่าวร้าย</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">แหล่งข่าว</label>
+              <input class="form-control" id="newsSource" placeholder="เช่น Bloomberg, SET" />
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="addNews()"><i class="fas fa-plus"></i> เพิ่มข่าว</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> ข่าวทั้งหมด</div>
+        <div id="adminNewsList">กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="adminTab-settings" class="tab-content">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-cog"></i> ตั้งค่าระบบ</div>
+        <div class="form-group">
+          <label class="form-label">ชื่อเว็บไซต์</label>
+          <input class="form-control" value="ร่ำรวยหุ้น AI" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">สถานะระบบ</label>
+          <div class="toggle-wrap">
+            <div class="toggle on" id="systemToggle" onclick="this.classList.toggle('on')"></div>
+            <span style="font-size:14px; color:var(--text-secondary)">ระบบทำงานปกติ</span>
+          </div>
+        </div>
+        <button class="btn btn-gold"><i class="fas fa-save"></i> บันทึกการตั้งค่า</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">📈 ร่ำรวยหุ้น AI</div>
+  <p>ระบบวิเคราะห์หุ้นอัจฉริยะ | ข้อมูลหุ้นจาก Finnhub API</p>
+  <p style="margin-top:8px; font-size:12px;">⚠️ ข้อมูลนี้เพื่อการศึกษาเท่านั้น ไม่ถือเป็นคำแนะนำการลงทุน</p>
+  <p style="margin-top:8px; font-size:12px;">📈 พัฒนาโดย สิทธิพงษ์ ทองชุมนุม</p>
+  <p style="margin-top:8px;">&copy; 2025 หุ้น AI. All rights reserved.</p>
+</footer>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button>
+    <h2 style="margin-bottom:8px;"><i class="fas fa-user-plus" style="color:var(--gold)"></i> เพิ่มสมาชิก</h2>
+    <p>สร้างบัญชีผู้ใช้ใหม่</p>
+    <div class="form-group"><label class="form-label">ชื่อ</label><input class="form-control" id="newUserName" placeholder="ชื่อ-นามสกุล"/></div>
+    <div class="form-group"><label class="form-label">ชื่อผู้ใช้</label><input class="form-control" id="newUsername" placeholder="username"/></div>
+    <div class="form-group"><label class="form-label">รหัสผ่าน</label><input class="form-control" id="newUserPass" type="password" placeholder="รหัสผ่าน"/></div>
+    <div class="form-group">
+      <label class="form-label">บทบาท</label>
+      <select class="form-control" id="newUserRole"><option value="user">สมาชิก</option><option value="admin">แอดมิน</option></select>
+    </div>
+    <button class="btn btn-gold" style="width:100%; padding:13px;" onclick="createUser()"><i class="fas fa-user-plus"></i> สร้างบัญชี</button>
+  </div>
+</div>
+
+<script>
+// =============================================
+//  FIREBASE CONFIG
+// =============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDwmFKFoTEegJONofUOyZJBRKcOkmkQG7A",
+  authDomain: "app-rm-ruay-hun.firebaseapp.com",
+  projectId: "app-rm-ruay-hun",
+  storageBucket: "app-rm-ruay-hun.firebasestorage.app",
+  messagingSenderId: "501495695669",
+  appId: "1:501495695669:web:431ced9edaf06efc74e47c",
+  measurementId: "G-ZVF8WYX8X1"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// =============================================
+//  FINNHUB API
+// =============================================
+const API_KEY = "d7qrrb1r01qudmina8qgd7qrrb1r01qudmina8r0";
+const FINNHUB = "https://finnhub.io/api/v1";
+
+// =============================================
+//  STATE
+// =============================================
+let currentUser = null;
+let currentStockSymbol = null;
+let stockDetailChartInstance = null;
+let portfolioChartInstance = null;
+let cachedPrices = {};
+let allNewsData = [];
+
+// =============================================
+//  INIT
+// =============================================
+window.onload = async () => {
+  await checkSession();
+  hideLoading();
+  showPage('home');
+  loadFeaturedStocks();
+  loadTickerPrices();
+  loadInitialNews();
+  setInterval(loadTickerPrices, 30000);
+  setInterval(checkPriceAlerts, 60000);
+};
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// =============================================
+//  SESSION
+// =============================================
+async function checkSession() {
+  const saved = localStorage.getItem('currentUser');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    updateNavForUser();
+  }
+}
+
+function updateNavForUser() {
+  if (currentUser) {
+    document.getElementById('navGuest').classList.add('d-none');
+    document.getElementById('navUser').classList.remove('d-none');
+    document.getElementById('userAvatar').textContent = (currentUser.name || currentUser.username || 'U')[0].toUpperCase();
+    document.getElementById('ddUserName').textContent = currentUser.name || currentUser.username;
+    document.getElementById('ddUserRole').textContent = currentUser.role === 'admin' ? '👑 แอดมิน' : (currentUser.vip ? '⭐ VIP' : 'สมาชิกทั่วไป');
+    // show auth menus
+    document.getElementById('navDashboardItem').classList.remove('d-none');
+    document.getElementById('navFavItem').classList.remove('d-none');
+    document.getElementById('navPortItem').classList.remove('d-none');
+    document.querySelectorAll('.sb-auth').forEach(el => el.classList.remove('d-none'));
+    if (currentUser.role === 'admin') {
+      document.getElementById('navAdminItem').classList.remove('d-none');
+      document.querySelectorAll('.sb-admin').forEach(el => el.classList.remove('d-none'));
+    }
+  } else {
+    document.getElementById('navGuest').classList.remove('d-none');
+    document.getElementById('navUser').classList.add('d-none');
+    document.getElementById('navDashboardItem').classList.add('d-none');
+    document.getElementById('navFavItem').classList.add('d-none');
+    document.getElementById('navPortItem').classList.add('d-none');
+    document.getElementById('navAdminItem').classList.add('d-none');
+    document.querySelectorAll('.sb-auth, .sb-admin').forEach(el => el.classList.add('d-none'));
+  }
+}
+
+// =============================================
+//  AUTH
+// =============================================
+async function login() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('rememberMe').checked;
+  if (!username || !password) { toastError('กรุณากรอกข้อมูลให้ครบ'); return; }
+
+  try {
+    const snap = await db.collection('users').where('username','==',username).where('password','==',password).get();
+    if (snap.empty) { toastError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); return; }
+    const user = snap.docs[0].data();
+    user.id = snap.docs[0].id;
+    if (user.status === 'banned') { toastError('บัญชีนี้ถูกระงับ'); return; }
+    currentUser = user;
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    updateNavForUser();
+    closeModal('loginModal');
+    toastSuccess(`ยินดีต้อนรับ ${user.name || user.username}! 🎉`);
+    showPage('dashboard');
+  } catch(e) {
+    console.error(e);
+    toastError('เกิดข้อผิดพลาด โปรดลองอีกครั้ง');
+  }
+}
+
+async function register() {
+  const name = document.getElementById('regName').value.trim();
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value;
+  if (!name || !username || !password) { toastError('กรุณากรอกข้อมูลให้ครบ'); return; }
+  if (password.length < 6) { toastError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if (!/^[a-z0-9_]+$/.test(username)) { toastError('ชื่อผู้ใช้ใช้ได้เฉพาะภาษาอังกฤษ ตัวเลข และ _'); return; }
+
+  try {
+    const existing = await db.collection('users').where('username','==',username).get();
+    if (!existing.empty) { toastError('ชื่อผู้ใช้นี้ถูกใช้แล้ว'); return; }
+    const newUser = { username, password, name, role: 'user', vip: false, status: 'active', createdAt: new Date() };
+    const ref = await db.collection('users').add(newUser);
+    newUser.id = ref.id;
+    currentUser = newUser;
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    updateNavForUser();
+    closeModal('registerModal');
+    toastSuccess('สมัครสมาชิกสำเร็จ! ยินดีต้อนรับ 🎉');
+    showPage('dashboard');
+  } catch(e) {
+    console.error(e);
+    toastError('เกิดข้อผิดพลาด โปรดลองอีกครั้ง');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  updateNavForUser();
+  closeUserMenu();
+  showPage('home');
+  toastSuccess('ออกจากระบบแล้ว');
+}
+
+// =============================================
+//  NAVIGATION
+// =============================================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) { el.classList.add('active'); window.scrollTo(0,0); }
+  document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  closeUserMenu();
+
+  // Load data on page show
+  if (page === 'dashboard' && currentUser) loadDashboard();
+  if (page === 'stocks') loadStocksPage();
+  if (page === 'favorites' && currentUser) loadFavorites();
+  if (page === 'portfolio' && currentUser) loadPortfolio();
+  if (page === 'news') loadNewsPage();
+  if (page === 'admin' && currentUser?.role === 'admin') loadAdminPage();
+}
+
+// =============================================
+//  STOCK API
+// =============================================
+async function fetchQuote(symbol) {
+  try {
+    const res = await fetch(`${FINNHUB}/quote?symbol=${symbol}&token=${API_KEY}`);
+    const data = await res.json();
+    cachedPrices[symbol] = data;
+    return data;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function fetchCandles(symbol, resolution, from, to) {
+  try {
+    const res = await fetch(`${FINNHUB}/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}&token=${API_KEY}`);
+    const data = await res.json();
+    return data;
+  } catch(e) { return null; }
+}
+
+async function fetchProfile(symbol) {
+  try {
+    const res = await fetch(`${FINNHUB}/stock/profile2?symbol=${symbol}&token=${API_KEY}`);
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+const FEATURED_STOCKS = ['AAPL','TSLA','NVDA','MSFT','AMZN','META','GOOGL','NFLX'];
+const TICKER_STOCKS = ['AAPL','TSLA','NVDA','MSFT','AMZN','META','GOOGL'];
+
+async function loadTickerPrices() {
+  for (const sym of TICKER_STOCKS) {
+    const q = await fetchQuote(sym);
+    if (!q) continue;
+    const price = q.c; const prev = q.pc;
+    const chg = price - prev; const pct = prev ? (chg/prev*100) : 0;
+    const up = chg >= 0;
+    const tEl = document.getElementById('t-' + sym);
+    const tcEl = document.getElementById('tc-' + sym);
+    if (tEl) tEl.textContent = `$${price?.toFixed(2)}`;
+    if (tcEl) {
+      tcEl.textContent = `${up?'+':''}${pct?.toFixed(2)}%`;
+      tcEl.className = 'ticker-change ' + (up ? 'up' : 'down');
+    }
+  }
+  // Duplicate ticker for seamless loop
+  const track = document.getElementById('tickerTrack');
+  if (track && !track.dataset.duplicated) {
+    track.innerHTML += track.innerHTML;
+    track.dataset.duplicated = '1';
+  }
+}
+
+async function loadFeaturedStocks() {
+  const container = document.getElementById('featuredStocks');
+  container.innerHTML = '';
+  const stocks = FEATURED_STOCKS.slice(0,4);
+  for (const sym of stocks) {
+    const q = await fetchQuote(sym);
+    if (!q) continue;
+    const price = q.c; const prev = q.pc;
+    const chg = price - prev; const pct = prev ? (chg/prev*100) : 0;
+    const up = chg >= 0;
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    card.onclick = () => openStockDetail(sym);
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="symbol">${sym}</div>
+          <div class="name">US Stock</div>
+        </div>
+        <div class="badge ${up?'badge-green':'badge-red'}">${up?'▲':'▼'}</div>
+      </div>
+      <div class="price ${up?'up':'down'}">$${price?.toFixed(2)}</div>
+      <div class="change ${up?'up':'down'}">${up?'+':''}${pct?.toFixed(2)}%</div>
+    `;
+    container.appendChild(card);
+  }
+}
+
+async function loadStocksPage() {
+  const container = document.getElementById('stocksGrid');
+  container.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner"></div></div>';
+  const symbols = FEATURED_STOCKS;
+  container.innerHTML = '';
+  for (const sym of symbols) {
+    const q = await fetchQuote(sym);
+    if (!q) continue;
+    const price = q.c; const prev = q.pc;
+    const chg = price - prev; const pct = prev ? (chg/prev*100) : 0;
+    const up = chg >= 0;
+    const isFav = await isFavorite(sym);
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="symbol">${sym}</div>
+          <div class="name">NASDAQ</div>
+        </div>
+        <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavoriteFromGrid(event,'${sym}',this)"><i class="fas fa-heart"></i></button>
+      </div>
+      <div class="price">$${price?.toFixed(2)}</div>
+      <div class="change ${up?'up':'down'}">${up?'+':''}${pct?.toFixed(2)}% <span style="color:var(--text-muted)">(${up?'+':''}${chg?.toFixed(2)})</span></div>
+      <div style="margin-top:10px; display:flex; gap:8px; font-size:12px; color:var(--text-muted)">
+        <span>H: <span style="color:var(--green)">$${q.h?.toFixed(2)}</span></span>
+        <span>L: <span style="color:var(--red)">$${q.l?.toFixed(2)}</span></span>
+        <span>V: ${formatVolume(q.v)}</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%; margin-top:10px;" onclick="openStockDetail('${sym}')">วิเคราะห์ <i class="fas fa-chart-line"></i></button>
+    `;
+    container.appendChild(card);
+  }
+  updateStats();
+}
+
+function updateStats() {
+  let up = 0; let down = 0;
+  for (const sym of FEATURED_STOCKS) {
+    const q = cachedPrices[sym];
+    if (!q) continue;
+    if (q.c >= q.pc) up++; else down++;
+  }
+  const upEl = document.getElementById('statUp');
+  const downEl = document.getElementById('statDown');
+  if (upEl) upEl.textContent = up;
+  if (downEl) downEl.textContent = down;
+  const setEl = document.getElementById('setIndex');
+  if (setEl) setEl.textContent = '1,598.42';
+}
+
+async function searchStock() {
+  const sym = document.getElementById('stockSearch').value.trim().toUpperCase();
+  if (!sym) return;
+  openStockDetail(sym);
+}
+
+// =============================================
+//  STOCK DETAIL
+// =============================================
+async function openStockDetail(symbol) {
+  currentStockSymbol = symbol;
+  document.getElementById('sdSymbol').textContent = symbol;
+  document.getElementById('sdName').textContent = 'กำลังโหลด...';
+  document.getElementById('sdPrice').textContent = '-';
+  document.getElementById('sdChange').textContent = '-';
+  showModal('stockDetailModal');
+
+  // Update fav button
+  const isFav = await isFavorite(symbol);
+  const favBtn = document.getElementById('sdFavBtn');
+  favBtn.classList.toggle('active', isFav);
+
+  // Quote
+  const q = await fetchQuote(symbol);
+  if (q && q.c) {
+    const price = q.c; const prev = q.pc;
+    const chg = price - prev; const pct = prev ? (chg/prev*100) : 0;
+    const up = chg >= 0;
+    document.getElementById('sdPrice').textContent = `$${price.toFixed(2)}`;
+    document.getElementById('sdPrice').className = up ? 'up' : 'down';
+    const changeEl = document.getElementById('sdChange');
+    changeEl.textContent = `${up?'+':''}${pct.toFixed(2)}% (${up?'+':''}${chg.toFixed(2)})`;
+    changeEl.className = 'badge ' + (up ? 'badge-green' : 'badge-red');
+    document.getElementById('sdOpen').textContent = `$${q.o?.toFixed(2)}`;
+    document.getElementById('sdHigh').textContent = `$${q.h?.toFixed(2)}`;
+    document.getElementById('sdLow').textContent = `$${q.l?.toFixed(2)}`;
+    document.getElementById('sdVolume').textContent = formatVolume(q.v);
+    generateAIAnalysis(price, q);
+    loadStockChart(symbol, '1D');
+    document.getElementById('pfAvgCost').value = price.toFixed(2);
+  } else {
+    document.getElementById('sdPrice').textContent = 'ไม่พบข้อมูล';
+  }
+
+  // Profile
+  const profile = await fetchProfile(symbol);
+  if (profile?.name) {
+    document.getElementById('sdName').textContent = profile.name + (profile.exchange ? ` · ${profile.exchange}` : '');
+  }
+
+  document.getElementById('pfSymbol').value = symbol;
+}
+
+function generateAIAnalysis(price, q) {
+  // Simulate technical indicators
+  const rsi = Math.random() * 40 + 30; // 30-70 range
+  const macd = (Math.random() - 0.5) * 2;
+  const ema = price * (1 + (Math.random()-0.5)*0.02);
+  const support = price * (1 - Math.random()*0.05 - 0.02);
+  const resistance = price * (1 + Math.random()*0.05 + 0.02);
+  const score = Math.round(Math.random() * 40 + 40); // 40-80
+
+  let signal, signalClass;
+  if (score >= 65) { signal = 'ซื้อ (BUY)'; signalClass = 'rec-buy'; }
+  else if (score >= 45) { signal = 'ถือ (HOLD)'; signalClass = 'rec-hold'; }
+  else { signal = 'ขาย (SELL)'; signalClass = 'rec-sell'; }
+
+  document.getElementById('aiScoreVal').textContent = score;
+  const deg = `${score * 3.6}deg`;
+  document.getElementById('aiScoreCircle').style.setProperty('--pct', deg);
+  document.getElementById('aiScoreCircle').style.background = `conic-gradient(${score>=65?'var(--green)':score>=45?'var(--orange)':'var(--red)'} ${deg}, rgba(255,255,255,0.06) ${deg})`;
+  document.getElementById('aiSignal').textContent = signal;
+  document.getElementById('aiSignal').className = `rec-signal ${signalClass}`;
+  document.getElementById('aiRSI').textContent = rsi.toFixed(1);
+  document.getElementById('aiRSI').style.color = rsi > 70 ? 'var(--red)' : rsi < 30 ? 'var(--green)' : 'var(--text-primary)';
+  document.getElementById('aiMACD').textContent = (macd >= 0 ? '+' : '') + macd.toFixed(3);
+  document.getElementById('aiMACD').style.color = macd >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('aiEMA').textContent = `$${ema.toFixed(2)}`;
+  document.getElementById('aiSupport').textContent = `$${support.toFixed(2)}`;
+  document.getElementById('aiResistance').textContent = `$${resistance.toFixed(2)}`;
+}
+
+async function loadStockChart(symbol, period) {
+  const now = Math.floor(Date.now()/1000);
+  let from, resolution;
+  if (period === '1D') { from = now - 86400; resolution = '5'; }
+  else if (period === '1W') { from = now - 7*86400; resolution = '60'; }
+  else if (period === '1M') { from = now - 30*86400; resolution = 'D'; }
+  else { from = now - 90*86400; resolution = 'D'; }
+
+  const candles = await fetchCandles(symbol, resolution, from, now);
+
+  if (stockDetailChartInstance) stockDetailChartInstance.destroy();
+
+  const ctx = document.getElementById('stockDetailChart').getContext('2d');
+  let labels = [], prices = [];
+
+  if (candles && candles.s === 'ok' && candles.c) {
+    prices = candles.c;
+    labels = candles.t.map(t => {
+      const d = new Date(t*1000);
+      if (period === '1D') return d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+      return d.toLocaleDateString('th-TH', {month:'short', day:'numeric'});
+    });
+  } else {
+    // Demo data if API fails
+    const base = cachedPrices[symbol]?.c || 150;
+    for (let i = 0; i < 30; i++) {
+      prices.push(base * (0.95 + Math.random()*0.1));
+      labels.push(`${i+1}`);
+    }
+  }
+
+  const isUp = prices[prices.length-1] >= prices[0];
+  const color = isUp ? '#00E676' : '#FF1744';
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, isUp ? 'rgba(0,230,118,0.2)' : 'rgba(255,23,68,0.2)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+  stockDetailChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: prices,
+        borderColor: color,
+        backgroundColor: gradient,
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#4A5A7A', maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#4A5A7A', callback: v => '$'+v.toFixed(0) } }
+      }
+    }
+  });
+}
+
+function changeChartPeriod(period, btn) {
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (currentStockSymbol) loadStockChart(currentStockSymbol, period);
+}
+
+// =============================================
+//  FAVORITES
+// =============================================
+async function isFavorite(symbol) {
+  if (!currentUser) return false;
+  try {
+    const snap = await db.collection('favorites')
+      .where('username','==',currentUser.username)
+      .where('symbol','==',symbol).get();
+    return !snap.empty;
+  } catch(e) { return false; }
+}
+
+async function toggleFavorite() {
+  if (!currentUser) { showModal('loginModal'); return; }
+  const symbol = currentStockSymbol;
+  const btn = document.getElementById('sdFavBtn');
+  const isFav = await isFavorite(symbol);
+  if (isFav) {
+    const snap = await db.collection('favorites').where('username','==',currentUser.username).where('symbol','==',symbol).get();
+    snap.docs.forEach(d => d.ref.delete());
+    btn.classList.remove('active');
+    toastSuccess(`ลบ ${symbol} ออกจากโปรดแล้ว`);
+  } else {
+    await db.collection('favorites').add({ username: currentUser.username, symbol, createdAt: new Date() });
+    btn.classList.add('active');
+    toastSuccess(`เพิ่ม ${symbol} ในโปรดแล้ว ❤️`);
+  }
+}
+
+async function toggleFavoriteFromGrid(e, symbol, btn) {
+  e.stopPropagation();
+  if (!currentUser) { showModal('loginModal'); return; }
+  const isFav = await isFavorite(symbol);
+  if (isFav) {
+    const snap = await db.collection('favorites').where('username','==',currentUser.username).where('symbol','==',symbol).get();
+    snap.docs.forEach(d => d.ref.delete());
+    btn.classList.remove('active');
+    toastSuccess(`ลบ ${symbol} ออกจากโปรดแล้ว`);
+  } else {
+    await db.collection('favorites').add({ username: currentUser.username, symbol, createdAt: new Date() });
+    btn.classList.add('active');
+    toastSuccess(`เพิ่ม ${symbol} ในโปรดแล้ว ❤️`);
+  }
+}
+
+async function loadFavorites() {
+  if (!currentUser) return;
+  const container = document.getElementById('favoritesGrid');
+  container.innerHTML = '<div style="color:var(--text-muted)">กำลังโหลด...</div>';
+  try {
+    const snap = await db.collection('favorites').where('username','==',currentUser.username).get();
+    if (snap.empty) {
+      container.innerHTML = `<div style="color:var(--text-muted); padding:20px 0;">ยังไม่มีหุ้นโปรด <a onclick="showPage('stocks')" style="color:var(--gold);cursor:pointer">เพิ่มตอนนี้</a></div>`;
+      return;
+    }
+    container.innerHTML = '';
+    for (const doc of snap.docs) {
+      const { symbol } = doc.data();
+      const q = await fetchQuote(symbol);
+      if (!q) continue;
+      const price = q.c; const prev = q.pc;
+      const chg = price - prev; const pct = prev ? (chg/prev*100) : 0;
+      const up = chg >= 0;
+      const card = document.createElement('div');
+      card.className = 'stock-card';
+      card.onclick = () => openStockDetail(symbol);
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><div class="symbol">${symbol}</div></div>
+          <button class="fav-btn active" onclick="removeFavoriteCard(event,'${doc.id}',this.closest('.stock-card'))"><i class="fas fa-heart"></i></button>
+        </div>
+        <div class="price ${up?'up':'down'}">$${price?.toFixed(2)}</div>
+        <div class="change ${up?'up':'down'}">${up?'+':''}${pct?.toFixed(2)}%</div>
+      `;
+      container.appendChild(card);
+    }
+  } catch(e) { container.innerHTML = '<div style="color:var(--red)">เกิดข้อผิดพลาด</div>'; }
+}
+
+async function removeFavoriteCard(e, docId, card) {
+  e.stopPropagation();
+  await db.collection('favorites').doc(docId).delete();
+  card.remove();
+  toastSuccess('ลบออกจากโปรดแล้ว');
+}
+
+// =============================================
+//  PORTFOLIO
+// =============================================
+function addToPortfolioPrompt() {
+  if (!currentUser) { closeModal('stockDetailModal'); showModal('loginModal'); return; }
+  showModal('addPortfolioModal');
+}
+
+async function savePortfolio() {
+  if (!currentUser) return;
+  const symbol = document.getElementById('pfSymbol').value;
+  const qty = parseFloat(document.getElementById('pfQty').value);
+  const avgCost = parseFloat(document.getElementById('pfAvgCost').value);
+  if (!qty || !avgCost) { toastError('กรุณากรอกข้อมูลให้ครบ'); return; }
+  try {
+    await db.collection('portfolio').add({
+      username: currentUser.username, symbol, qty, avgCost, createdAt: new Date()
+    });
+    closeModal('addPortfolioModal');
+    toastSuccess(`เพิ่ม ${symbol} ในพอร์ตแล้ว 💼`);
+    document.getElementById('pfQty').value = '';
+  } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+}
+
+async function loadPortfolio() {
+  if (!currentUser) return;
+  const tbody = document.getElementById('portfolioTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><div class="spinner"></div></td></tr>';
+  try {
+    const snap = await db.collection('portfolio').where('username','==',currentUser.username).get();
+    if (snap.empty) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted)"><i class="fas fa-briefcase" style="font-size:32px; display:block; margin-bottom:10px;"></i>ยังไม่มีหุ้นในพอร์ต</td></tr>`;
+      document.getElementById('pfTotalValue').textContent = '$0';
+      document.getElementById('pfTotalPnL').textContent = '$0';
+      document.getElementById('pfTotalReturn').textContent = '0%';
+      return;
+    }
+    let totalValue = 0, totalCost = 0;
+    tbody.innerHTML = '';
+    for (const doc of snap.docs) {
+      const { symbol, qty, avgCost } = doc.data();
+      const q = await fetchQuote(symbol);
+      const currentPrice = q?.c || avgCost;
+      const value = currentPrice * qty;
+      const cost = avgCost * qty;
+      const pnl = value - cost;
+      const pnlPct = ((pnl/cost)*100);
+      totalValue += value; totalCost += cost;
+      const up = pnl >= 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span style="font-family:'Rajdhani'; font-size:16px; font-weight:700; color:var(--gold)">${symbol}</span></td>
+        <td>${qty}</td>
+        <td style="font-family:'Share Tech Mono'">$${avgCost.toFixed(2)}</td>
+        <td style="font-family:'Share Tech Mono'; color:${up?'var(--green)':'var(--red)'}">$${currentPrice.toFixed(2)}</td>
+        <td style="font-family:'Share Tech Mono'">$${value.toFixed(2)}</td>
+        <td style="font-family:'Share Tech Mono'; color:${up?'var(--green)':'var(--red)'}">${up?'+':''}$${pnl.toFixed(2)} (${up?'+':''}${pnlPct.toFixed(1)}%)</td>
+        <td><button class="btn btn-danger btn-xs" onclick="deletePortfolio('${doc.id}')"><i class="fas fa-trash"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+    const totalPnl = totalValue - totalCost;
+    const totalRet = totalCost ? (totalPnl/totalCost*100) : 0;
+    const up = totalPnl >= 0;
+    document.getElementById('pfTotalValue').textContent = `$${totalValue.toFixed(2)}`;
+    document.getElementById('pfTotalPnL').textContent = `${up?'+':''}$${totalPnl.toFixed(2)}`;
+    document.getElementById('pfTotalPnL').style.color = up ? 'var(--green)' : 'var(--red)';
+    document.getElementById('pfTotalReturn').textContent = `${up?'+':''}${totalRet.toFixed(2)}%`;
+    document.getElementById('pfTotalReturn').style.color = up ? 'var(--green)' : 'var(--red)';
+    document.getElementById('dashPortValue').textContent = `$${totalValue.toFixed(2)}`;
+  } catch(e) { console.error(e); }
+}
+
+async function deletePortfolio(docId) {
+  const result = await Swal.fire({
+    title: 'ลบหุ้นออกจากพอร์ต?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ลบ',
+    cancelButtonText: 'ยกเลิก',
+    background: '#111827',
+    color: '#F0F4FF',
+    confirmButtonColor: '#FF1744',
+  });
+  if (result.isConfirmed) {
+    await db.collection('portfolio').doc(docId).delete();
+    toastSuccess('ลบออกจากพอร์ตแล้ว');
+    loadPortfolio();
+  }
+}
+
+// =============================================
+//  DASHBOARD
+// =============================================
+async function loadDashboard() {
+  if (!currentUser) return;
+  document.getElementById('dashWelcome').textContent = `สวัสดี, ${currentUser.name || currentUser.username}`;
+  if (currentUser.vip) document.getElementById('dashVip').classList.remove('d-none');
+
+  // Counts
+  try {
+    const favSnap = await db.collection('favorites').where('username','==',currentUser.username).get();
+    document.getElementById('dashFavCount').textContent = favSnap.size;
+    const alertSnap = await db.collection('alerts').where('username','==',currentUser.username).get();
+    document.getElementById('dashAlertCount').textContent = alertSnap.size;
+    const portSnap = await db.collection('portfolio').where('username','==',currentUser.username).get();
+    document.getElementById('dashPortCount').textContent = portSnap.size;
+
+    // Alerts list
+    const alertsEl = document.getElementById('dashAlerts');
+    if (alertSnap.empty) {
+      alertsEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted)"><i class="fas fa-bell-slash" style="font-size:28px; display:block; margin-bottom:10px;"></i>ไม่มีการแจ้งเตือน</div>';
+    } else {
+      alertsEl.innerHTML = '';
+      alertSnap.docs.slice(0,5).forEach(d => {
+        const { symbol, targetPrice } = d.data();
+        const div = document.createElement('div');
+        div.className = 'alert alert-warning';
+        div.innerHTML = `<i class="fas fa-bell"></i><div><div style="font-weight:600">${symbol}</div><div style="font-size:13px; color:var(--text-muted)">เป้าหมาย: $${targetPrice}</div></div>`;
+        alertsEl.appendChild(div);
+      });
+    }
+
+    // Fav stocks mini
+    const dashFav = document.getElementById('dashFavStocks');
+    if (!favSnap.empty) {
+      dashFav.innerHTML = '';
+      for (const doc of favSnap.docs.slice(0,4)) {
+        const { symbol } = doc.data();
+        const q = await fetchQuote(symbol);
+        if (!q) continue;
+        const price = q.c; const prev = q.pc;
+        const pct = prev ? ((price-prev)/prev*100) : 0;
+        const up = price >= prev;
+        const card = document.createElement('div');
+        card.className = 'stock-card';
+        card.onclick = () => openStockDetail(symbol);
+        card.innerHTML = `<div class="symbol">${symbol}</div><div class="price ${up?'up':'down'}">$${price?.toFixed(2)}</div><div class="change ${up?'up':'down'}">${up?'+':''}${pct?.toFixed(2)}%</div>`;
+        dashFav.appendChild(card);
+      }
+    }
+
+    // Portfolio pie chart
+    if (!portSnap.empty) {
+      const labels = [], data = [];
+      for (const doc of portSnap.docs) {
+        const { symbol, qty, avgCost } = doc.data();
+        const q = await fetchQuote(symbol);
+        const price = q?.c || avgCost;
+        labels.push(symbol);
+        data.push(price * qty);
+      }
+      document.getElementById('dashPortValue').textContent = `$${data.reduce((a,b)=>a+b,0).toFixed(2)}`;
+      if (portfolioChartInstance) portfolioChartInstance.destroy();
+      const ctx = document.getElementById('portfolioChart').getContext('2d');
+      portfolioChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: ['#F5C842','#00E676','#2979FF','#00BCD4','#FF9100','#FF1744'], borderWidth: 2, borderColor: '#111827' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8899BB', font: { family: 'Sarabun' } } } }
+        }
+      });
+    }
+  } catch(e) { console.error(e); }
+}
+
+// =============================================
+//  ALERTS
+// =============================================
+function addAlertPrompt() {
+  if (!currentUser) { closeModal('stockDetailModal'); showModal('loginModal'); return; }
+  document.getElementById('alertSymbol').value = currentStockSymbol || '';
+  showModal('alertModal');
+}
+
+async function saveAlert() {
+  if (!currentUser) return;
+  const symbol = document.getElementById('alertSymbol').value.trim().toUpperCase();
+  const targetPrice = parseFloat(document.getElementById('alertPrice').value);
+  if (!symbol || !targetPrice) { toastError('กรุณากรอกข้อมูลให้ครบ'); return; }
+  try {
+    await db.collection('alerts').add({ username: currentUser.username, symbol, targetPrice, createdAt: new Date() });
+    closeModal('alertModal');
+    toastSuccess(`ตั้งแจ้งเตือน ${symbol} ที่ $${targetPrice} แล้ว 🔔`);
+    document.getElementById('alertPrice').value = '';
+  } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+}
+
+async function checkPriceAlerts() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('alerts').where('username','==',currentUser.username).get();
+    for (const doc of snap.docs) {
+      const { symbol, targetPrice } = doc.data();
+      const q = cachedPrices[symbol] || await fetchQuote(symbol);
+      if (!q) continue;
+      if ((q.c >= targetPrice && q.pc < targetPrice) || (q.c <= targetPrice && q.pc > targetPrice)) {
+        Swal.fire({
+          title: `🔔 แจ้งเตือน ${symbol}`,
+          text: `ราคา ${symbol} ถึงเป้าหมาย $${targetPrice} แล้ว! ราคาปัจจุบัน: $${q.c.toFixed(2)}`,
+          icon: 'info', background: '#111827', color: '#F0F4FF',
+          confirmButtonColor: '#F5C842'
+        });
+      }
+    }
+  } catch(e) {}
+}
+
+// =============================================
+//  NEWS
+// =============================================
+const defaultNews = [
+  { title: 'SET ฟื้นตัวหลังข้อมูลเงินเฟ้อสหรัฐต่ำกว่าคาด', content: 'ดัชนีตลาดหลักทรัพย์ไทยปรับตัวขึ้นหลังสหรัฐรายงานอัตราเงินเฟ้อต่ำกว่าที่นักวิเคราะห์คาด', type: 'positive', source: 'SET News', date: new Date() },
+  { title: 'NVDA ทะลุ All-Time High ด้วยยอดขาย AI Chip ที่พุ่งสูง', content: 'NVIDIA รายงานรายได้จากชิป AI เพิ่มขึ้น 120% YoY ส่งผลให้ราคาหุ้นพุ่งขึ้น', type: 'positive', source: 'Bloomberg', date: new Date() },
+  { title: 'ดอกเบี้ยสูงยังกดดันหุ้นกลุ่มอสังหา-ธนาคาร', content: 'นักวิเคราะห์แนะให้ระวังหุ้นในกลุ่มที่ไวต่ออัตราดอกเบี้ยสูง', type: 'negative', source: 'Reuters', date: new Date() },
+  { title: 'PTT-PTTEP ปรับขึ้นตามราคาน้ำมันโลกที่ฟื้นตัว', content: 'ราคาน้ำมันดิบ Brent ปรับขึ้น 2% ส่งผลบวกต่อหุ้นพลังงานในตลาด SET', type: 'positive', source: 'SET', date: new Date() },
+  { title: 'FED ส่งสัญญาณอาจลดดอกเบี้ยปลายปีนี้', content: 'นักลงทุนจับตาการประชุม FED ที่จะมาถึง หลังสัญญาณเชิงบวกจากสมาชิก FOMC', type: 'positive', source: 'CNBC', date: new Date() },
+  { title: 'หุ้นจีนร่วงแรงหลังข้อมูลเศรษฐกิจผิดหวัง', content: 'ดัชนี Hang Seng และ Shanghai Composite ปรับลงแรงหลังตัวเลขเศรษฐกิจจีนต่ำกว่าคาด', type: 'negative', source: 'Financial Times', date: new Date() },
+];
+
+async function loadInitialNews() {
+  allNewsData = [...defaultNews];
+  try {
+    const snap = await db.collection('news').orderBy('date','desc').limit(20).get();
+    snap.docs.forEach(d => allNewsData.unshift({ id: d.id, ...d.data() }));
+  } catch(e) {}
+  renderNewsHome();
+}
+
+function renderNewsHome() {
+  const container = document.getElementById('newsList');
+  if (!container) return;
+  container.innerHTML = '';
+  allNewsData.forEach(n => {
+    const icons = { positive: '📈', negative: '📉', neutral: '📰' };
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `
+      <div class="news-item-thumb">${icons[n.type] || '📰'}</div>
+      <div>
+        <div class="news-title">${escapeHtml(n.title)}</div>
+        <div class="news-meta"><span class="news-source">${escapeHtml(n.source||'')}</span> · ${formatDate(n.date)}</div>
+        <div class="badge ${n.type==='positive'?'badge-green':n.type==='negative'?'badge-red':'badge-gray'}" style="margin-top:6px;">${n.type==='positive'?'ข่าวดี':n.type==='negative'?'ข่าวร้าย':'ทั่วไป'}</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function loadNewsPage() {
+  await loadInitialNews();
+  renderNewsHome();
+  // Featured news
+  const featured = document.getElementById('featuredNews');
+  if (featured && allNewsData.length > 0) {
+    const n = allNewsData[0];
+    featured.innerHTML = `<div class="news-title" style="font-size:16px; margin-bottom:8px;">${escapeHtml(n.title)}</div><div style="color:var(--text-secondary); font-size:13px;">${escapeHtml(n.content||'')}</div>`;
+  }
+  // Finnhub news
+  loadFinnhubNews();
+}
+
+async function loadFinnhubNews() {
+  const container = document.getElementById('finnhubNews');
+  if (!container) return;
+  try {
+    const res = await fetch(`${FINNHUB}/news?category=general&token=${API_KEY}`);
+    const data = await res.json();
+    container.innerHTML = '';
+    data.slice(0,5).forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.style.cursor = 'pointer';
+      div.onclick = () => window.open(n.url, '_blank');
+      div.innerHTML = `
+        <div class="news-item-thumb" style="font-size:14px; overflow:hidden;">${n.image ? `<img src="${n.image}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;" onerror="this.parentElement.innerHTML='📰'">` : '📰'}</div>
+        <div>
+          <div class="news-title" style="font-size:13px;">${n.headline?.substring(0,80)}...</div>
+          <div class="news-meta"><span class="news-source">${n.source}</span> · <i class="fas fa-external-link-alt" style="font-size:10px;"></i></div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch(e) { container.innerHTML = '<div style="color:var(--text-muted); font-size:14px">ไม่สามารถโหลดข่าวได้</div>'; }
+}
+
+function filterNews(type, btn) {
+  document.querySelectorAll('#page-news .tab-btn').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type === 'all' ? allNewsData : allNewsData.filter(n => n.type === type);
+  const container = document.getElementById('newsList');
+  container.innerHTML = '';
+  filtered.forEach(n => {
+    const icons = { positive: '📈', negative: '📉', neutral: '📰' };
+    const div = document.createElement('div');
+    div.className = 'news-item';
+    div.innerHTML = `
+      <div class="news-item-thumb">${icons[n.type] || '📰'}</div>
+      <div>
+        <div class="news-title">${escapeHtml(n.title)}</div>
+        <div class="news-meta"><span class="news-source">${escapeHtml(n.source||'')}</span></div>
+        <div class="badge ${n.type==='positive'?'badge-green':n.type==='negative'?'badge-red':'badge-gray'}" style="margin-top:6px;">${n.type==='positive'?'ข่าวดี':n.type==='negative'?'ข่าวร้าย':'ทั่วไป'}</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// =============================================
+//  VIP
+// =============================================
+async function subscribeVIP(plan) {
+  if (!currentUser) { showModal('loginModal'); return; }
+  const result = await Swal.fire({
+    title: '👑 สมัคร VIP',
+    html: `<div style="color:#8899BB;">แผน: <strong style="color:#F5C842">${plan === 'monthly' ? 'รายเดือน ฿299' : 'รายปี ฿2,499'}</strong></div><div style="margin-top:8px; font-size:13px; color:#4A5A7A;">*ฟีเจอร์ Demo - ไม่มีการชำระเงินจริง</div>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'ยืนยัน',
+    cancelButtonText: 'ยกเลิก',
+    background: '#111827', color: '#F0F4FF',
+    confirmButtonColor: '#F5C842',
+  });
+  if (result.isConfirmed) {
+    try {
+      const expire = new Date();
+      expire.setMonth(expire.getMonth() + (plan === 'monthly' ? 1 : 12));
+      await db.collection('subscriptions').add({ username: currentUser.username, plan, expireDate: expire, createdAt: new Date() });
+      await db.collection('users').doc(currentUser.id).update({ vip: true });
+      currentUser.vip = true;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      updateNavForUser();
+      toastSuccess('สมัคร VIP สำเร็จ! 👑 ปลดล็อกทุกฟีเจอร์แล้ว');
+    } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+  }
+}
+
+// =============================================
+//  ADMIN
+// =============================================
+async function loadAdminPage() {
+  if (currentUser?.role !== 'admin') return;
+  loadAdminUsers();
+  loadAdminStats();
+  loadAdminNews();
+}
+
+async function loadAdminStats() {
+  try {
+    const usersSnap = await db.collection('users').get();
+    document.getElementById('adminTotalUsers').textContent = usersSnap.size;
+    const vipUsers = usersSnap.docs.filter(d => d.data().vip).length;
+    document.getElementById('adminVipUsers').textContent = vipUsers;
+    const newsSnap = await db.collection('news').get();
+    document.getElementById('adminNewsCount').textContent = newsSnap.size;
+    const alertsSnap = await db.collection('alerts').get();
+    document.getElementById('adminAlertsCount').textContent = alertsSnap.size;
+  } catch(e) {}
+}
+
+async function loadAdminUsers() {
+  const tbody = document.getElementById('adminUsersTable');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center"><div class="spinner"></div></td></tr>';
+  try {
+    const snap = await db.collection('users').get();
+    tbody.innerHTML = '';
+    snap.docs.forEach(doc => {
+      const u = doc.data();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:'Share Tech Mono'; color:var(--gold)">${escapeHtml(u.username)}</td>
+        <td>${escapeHtml(u.name||'-')}</td>
+        <td><span class="badge ${u.status==='active'?'badge-green':'badge-red'}">${u.status==='active'?'ใช้งาน':'ระงับ'}</span></td>
+        <td>${u.vip?'<span class="badge badge-gold"><i class="fas fa-crown"></i> VIP</span>':'<span class="badge badge-gray">ปกติ</span>'}</td>
+        <td><span class="badge ${u.role==='admin'?'badge-gold':'badge-blue'}">${u.role}</span></td>
+        <td>
+          <button class="btn btn-outline btn-xs" onclick="toggleUserVip('${doc.id}','${u.vip}')"><i class="fas fa-crown"></i></button>
+          <button class="btn btn-danger btn-xs" onclick="deleteUser('${doc.id}','${escapeHtml(u.username)}')"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--red)">เกิดข้อผิดพลาด</td></tr>'; }
+}
+
+async function toggleUserVip(docId, currentVip) {
+  try {
+    await db.collection('users').doc(docId).update({ vip: currentVip !== 'true' });
+    toastSuccess('อัปเดต VIP แล้ว');
+    loadAdminUsers();
+  } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+}
+
+async function deleteUser(docId, username) {
+  if (username === 'ket') { toastError('ไม่สามารถลบบัญชีแอดมินหลักได้'); return; }
+  const result = await Swal.fire({
+    title: `ลบสมาชิก "${username}"?`,
+    icon: 'warning', showCancelButton: true,
+    confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+    background: '#111827', color: '#F0F4FF', confirmButtonColor: '#FF1744'
+  });
+  if (result.isConfirmed) {
+    await db.collection('users').doc(docId).delete();
+    toastSuccess('ลบสมาชิกแล้ว');
+    loadAdminUsers(); loadAdminStats();
+  }
+}
+
+async function createUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  const username = document.getElementById('newUsername').value.trim().toLowerCase();
+  const password = document.getElementById('newUserPass').value;
+  const role = document.getElementById('newUserRole').value;
+  if (!name || !username || !password) { toastError('กรุณากรอกข้อมูลให้ครบ'); return; }
+  try {
+    const existing = await db.collection('users').where('username','==',username).get();
+    if (!existing.empty) { toastError('ชื่อผู้ใช้นี้ถูกใช้แล้ว'); return; }
+    await db.collection('users').add({ username, password, name, role, vip: false, status: 'active', createdAt: new Date() });
+    closeModal('addUserModal');
+    toastSuccess('เพิ่มสมาชิกแล้ว');
+    loadAdminUsers(); loadAdminStats();
+  } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+}
+
+function showAddUserModal() { showModal('addUserModal'); }
+
+async function addNews() {
+  const title = document.getElementById('newsTitle').value.trim();
+  const content = document.getElementById('newsContent').value.trim();
+  const type = document.getElementById('newsType').value;
+  const source = document.getElementById('newsSource').value.trim();
+  if (!title || !content) { toastError('กรุณากรอกหัวข้อและเนื้อหา'); return; }
+  try {
+    await db.collection('news').add({ title, content, type, source: source||'Admin', date: new Date() });
+    toastSuccess('เพิ่มข่าวแล้ว');
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsContent').value = '';
+    document.getElementById('newsSource').value = '';
+    loadAdminStats(); loadAdminNews();
+  } catch(e) { toastError('เกิดข้อผิดพลาด'); }
+}
+
+async function loadAdminNews() {
+  const container = document.getElementById('adminNewsList');
+  if (!container) return;
+  try {
+    const snap = await db.collection('news').orderBy('date','desc').limit(20).get();
+    if (snap.empty) { container.innerHTML = '<div style="color:var(--text-muted); padding:16px;">ยังไม่มีข่าว</div>'; return; }
+    container.innerHTML = '';
+    snap.docs.forEach(doc => {
+      const n = doc.data();
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.innerHTML = `
+        <div style="flex:1;">
+          <div class="news-title">${escapeHtml(n.title)}</div>
+          <div class="news-meta">${escapeHtml(n.source||'')} · <span class="badge ${n.type==='positive'?'badge-green':n.type==='negative'?'badge-red':'badge-gray'}">${n.type}</span></div>
+        </div>
+        <button class="btn btn-danger btn-xs" onclick="deleteNews('${doc.id}')"><i class="fas fa-trash"></i></button>
+      `;
+      container.appendChild(div);
+    });
+  } catch(e) {}
+}
+
+async function deleteNews(docId) {
+  await db.collection('news').doc(docId).delete();
+  toastSuccess('ลบข่าวแล้ว');
+  loadAdminNews(); loadAdminStats();
+}
+
+// =============================================
+//  TAB SYSTEM
+// =============================================
+function switchTab(group, tab, btn) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('active'));
+  document.getElementById(`${group}-${tab}`)?.classList.add('active');
+  // update buttons in same section
+  btn.closest('.tabs')?.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// =============================================
+//  MODAL HELPERS
+// =============================================
+function showModal(id) {
+  document.getElementById(id)?.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// =============================================
+//  SIDEBAR
+// =============================================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// =============================================
+//  USER MENU
+// =============================================
+function toggleUserMenu() {
+  document.getElementById('userDropdown')?.classList.toggle('show');
+}
+function closeUserMenu() {
+  document.getElementById('userDropdown')?.classList.remove('show');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.user-menu-wrap')) closeUserMenu();
+});
+
+// =============================================
+//  TOAST
+// =============================================
+function toastSuccess(msg) {
+  Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: msg, showConfirmButton: false, timer: 3000, background: '#111827', color: '#F0F4FF', iconColor: '#00E676' });
+}
+function toastError(msg) {
+  Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: msg, showConfirmButton: false, timer: 3000, background: '#111827', color: '#F0F4FF', iconColor: '#FF1744' });
+}
+
+// =============================================
+//  UTILS
+// =============================================
+function formatVolume(v) {
+  if (!v) return '-';
+  if (v >= 1e9) return (v/1e9).toFixed(1)+'B';
+  if (v >= 1e6) return (v/1e6).toFixed(1)+'M';
+  if (v >= 1e3) return (v/1e3).toFixed(1)+'K';
+  return v.toString();
+}
+function formatDate(date) {
+  if (!date) return '';
+  const d = date.toDate ? date.toDate() : new Date(date);
+  return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+function escapeHtml(text) {
+  if (!text) return '';
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// =============================================
+//  ENSURE ADMIN USER EXISTS
+// =============================================
+async function ensureAdmin() {
+  try {
+    const snap = await db.collection('users').where('username','==','ket').get();
+    if (snap.empty) {
+      await db.collection('users').add({
+        username: 'ket', password: 'admin1234', name: 'Admin',
+        role: 'admin', vip: true, status: 'active', createdAt: new Date()
+      });
+    }
+  } catch(e) {}
+}
+ensureAdmin();
+</script>
+</body>
+</html>
