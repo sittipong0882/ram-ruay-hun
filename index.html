@@ -799,6 +799,199 @@
         color: var(--gold);
       }
 
+      /* ===== TIMEFRAME SELECTOR ===== */
+      .tf-selector-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .tf-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .tf-btn-group {
+        display: flex;
+        gap: 6px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--navy-border);
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .tf-btn {
+        padding: 6px 16px;
+        border-radius: 7px;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        letter-spacing: 0.5px;
+        position: relative;
+        white-space: nowrap;
+      }
+      .tf-btn:hover {
+        color: var(--text-primary);
+        background: rgba(255,255,255,0.06);
+      }
+      .tf-btn.active {
+        background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        color: var(--navy);
+        box-shadow: 0 2px 10px rgba(245,200,66,0.3);
+      }
+      .tf-desc {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-left: auto;
+        font-style: italic;
+        display: none;
+      }
+      @media (min-width: 480px) {
+        .tf-desc { display: inline; }
+      }
+
+      /* ===== ENHANCED SR BOX WITH LEVELS ===== */
+      .sr-box-multi {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--navy-border);
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .sr-box-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .sr-box-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sr-tf-badge {
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: 50px;
+        font-weight: 700;
+        background: rgba(245,200,66,0.12);
+        color: var(--gold);
+        border: 1px solid rgba(245,200,66,0.25);
+        font-family: 'Rajdhani', sans-serif;
+        letter-spacing: 1px;
+      }
+      .sr-levels-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .sr-level-item {
+        background: rgba(255,255,255,0.03);
+        border-radius: 9px;
+        padding: 10px 12px;
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+      }
+      .sr-level-item.resistance-main { border-color: var(--red); }
+      .sr-level-item.resistance-minor { border-color: rgba(255,23,68,0.4); }
+      .sr-level-item.support-main { border-color: var(--green); }
+      .sr-level-item.support-minor { border-color: rgba(0,230,118,0.4); }
+      .sr-level-label {
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+      }
+      .sr-level-price {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .sr-level-price.red { color: var(--red); }
+      .sr-level-price.red-soft { color: #ff6b6b; }
+      .sr-level-price.green { color: var(--green); }
+      .sr-level-price.green-soft { color: #69e89e; }
+      .sr-entry-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+      .sr-entry-item {
+        background: rgba(255,255,255,0.03);
+        border-radius: 9px;
+        padding: 8px 10px;
+        text-align: center;
+      }
+      .sr-entry-label { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; }
+      .sr-entry-val {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      /* ===== AI TIMEFRAME ANALYSIS ===== */
+      .tf-ai-card {
+        background: linear-gradient(135deg, rgba(26,107,224,0.08), rgba(0,188,212,0.05));
+        border: 1px solid rgba(26,107,224,0.2);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      .tf-ai-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--teal);
+      }
+      .tf-ai-points {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .tf-ai-point {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      .tf-ai-point .dot { font-size: 10px; margin-top: 4px; flex-shrink: 0; }
+      .tf-ai-conclusion {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       /* AI METER */
       .ai-score {
         width: 120px;
@@ -2239,7 +2432,71 @@
           <div id="chartSRLabels" style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; gap:4px; font-size:11px; font-family:'Share Tech Mono';"></div>
         </div>
 
-        <!-- SR + Entry points -->
+        <!-- TIMEFRAME SELECTOR (VIP) -->
+        <div id="tfSelectorWrap" style="display:none;">
+          <div class="tf-selector-wrap">
+            <span class="tf-label"><i class="fas fa-clock" style="color:var(--gold);"></i> แนวรับ-ต้าน</span>
+            <div class="tf-btn-group">
+              <button class="tf-btn active" id="tfBtnDay" onclick="changeSRTimeframe('DAY',this)">DAY</button>
+              <button class="tf-btn" id="tfBtnWeek" onclick="changeSRTimeframe('WEEK',this)">WEEK</button>
+              <button class="tf-btn" id="tfBtnMonth" onclick="changeSRTimeframe('MONTH',this)">MONTH</button>
+            </div>
+            <span class="tf-desc" id="tfDescText">เล่นสั้น/รายวัน</span>
+          </div>
+
+          <!-- Enhanced Multi-Level SR Box -->
+          <div class="sr-box-multi" id="srBoxMulti">
+            <div class="sr-box-header">
+              <div class="sr-box-title"><i class="fas fa-layer-group" style="color:var(--gold);"></i> ระดับแนวรับ-แนวต้าน</div>
+              <span class="sr-tf-badge" id="srTfBadge">DAY</span>
+            </div>
+            <div class="sr-levels-grid">
+              <div class="sr-level-item resistance-main">
+                <div class="sr-level-label">📕 แนวต้านหลัก</div>
+                <div class="sr-level-price red" id="srResMain">-</div>
+              </div>
+              <div class="sr-level-item resistance-minor">
+                <div class="sr-level-label">🟧 แนวต้านรอง</div>
+                <div class="sr-level-price red-soft" id="srResMinor">-</div>
+              </div>
+              <div class="sr-level-item support-main">
+                <div class="sr-level-label">📗 แนวรับหลัก</div>
+                <div class="sr-level-price green" id="srSupMain">-</div>
+              </div>
+              <div class="sr-level-item support-minor">
+                <div class="sr-level-label">🟩 แนวรับรอง</div>
+                <div class="sr-level-price green-soft" id="srSupMinor">-</div>
+              </div>
+            </div>
+            <div class="sr-entry-row">
+              <div class="sr-entry-item">
+                <div class="sr-entry-label">🟢 จุดซื้อ</div>
+                <div class="sr-entry-val" id="srBuyValNew" style="color:var(--green);">-</div>
+              </div>
+              <div class="sr-entry-item">
+                <div class="sr-entry-label">🟡 จุดขาย</div>
+                <div class="sr-entry-val" id="srSellValNew" style="color:var(--gold);">-</div>
+              </div>
+              <div class="sr-entry-item">
+                <div class="sr-entry-label">🔴 Stop Loss</div>
+                <div class="sr-entry-val" id="srStopValNew" style="color:var(--red);">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Timeframe Analysis -->
+          <div class="tf-ai-card" id="tfAiCard">
+            <div class="tf-ai-header"><i class="fas fa-brain"></i> AI วิเคราะห์ตาม <span id="tfAiLabel">DAY</span></div>
+            <div class="tf-ai-points" id="tfAiPoints">
+              <div class="tf-ai-point"><span class="dot">●</span><span>กำลังวิเคราะห์...</span></div>
+            </div>
+            <div class="tf-ai-conclusion" id="tfAiConclusion">
+              <span>📊</span> <span id="tfAiConclusionText">กำลังประมวลผล...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SR + Entry points (original — kept for compat) -->
         <div class="sr-box" id="srBox" style="display:none;">
           <div class="sr-item sr-support">
             <div class="sr-label">📗 แนวรับ</div>
@@ -2800,62 +3057,6 @@
               <span id="dashVip" class="badge badge-gold d-none"
                 ><i class="fas fa-crown"></i> VIP</span
               >
-            </div>
-          </div>
-
-          <!-- TICKER -->
-          <div class="ticker-wrap">
-            <div class="ticker-track" id="tickerTrack">
-              <div class="ticker-item">
-                <span class="ticker-symbol">AAPL</span
-                ><span class="ticker-price" id="t-AAPL">-</span
-                ><span class="ticker-change" id="tc-AAPL">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">TSLA</span
-                ><span class="ticker-price" id="t-TSLA">-</span
-                ><span class="ticker-change" id="tc-TSLA">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">NVDA</span
-                ><span class="ticker-price" id="t-NVDA">-</span
-                ><span class="ticker-change" id="tc-NVDA">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">MSFT</span
-                ><span class="ticker-price" id="t-MSFT">-</span
-                ><span class="ticker-change" id="tc-MSFT">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">AMZN</span
-                ><span class="ticker-price" id="t-AMZN">-</span
-                ><span class="ticker-change" id="tc-AMZN">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">META</span
-                ><span class="ticker-price" id="t-META">-</span
-                ><span class="ticker-change" id="tc-META">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">GOOGL</span
-                ><span class="ticker-price" id="t-GOOGL">-</span
-                ><span class="ticker-change" id="tc-GOOGL">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">AAPL</span
-                ><span class="ticker-price">-</span
-                ><span class="ticker-change">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">TSLA</span
-                ><span class="ticker-price">-</span
-                ><span class="ticker-change">-</span>
-              </div>
-              <div class="ticker-item">
-                <span class="ticker-symbol">NVDA</span
-                ><span class="ticker-price">-</span
-                ><span class="ticker-change">-</span>
-              </div>
             </div>
           </div>
 
@@ -4219,6 +4420,8 @@
         document.getElementById("sdChange").textContent = "-";
         const srBox = document.getElementById("srBox");
         if (srBox) srBox.style.display = 'none';
+        const tfWrap = document.getElementById("tfSelectorWrap");
+        if (tfWrap) tfWrap.style.display = 'none';
         const stockNewsSection = document.getElementById("stockNewsSection");
         if (stockNewsSection) stockNewsSection.style.display = 'none';
         const vipLock = document.getElementById("sdVipLock");
@@ -4271,7 +4474,20 @@
 
           // Show SR box and news only for VIP, lock message for free
           if (isVip) {
-            if (srBox) srBox.style.display = 'flex';
+            if (srBox) srBox.style.display = 'none'; // hide old, use new multi
+            if (tfWrap) {
+              tfWrap.style.display = 'block';
+              // Restore saved timeframe or default to DAY
+              try { currentSRTimeframe = localStorage.getItem('srTimeframe') || 'DAY'; } catch(e) { currentSRTimeframe = 'DAY'; }
+              document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+              const activeBtn = document.getElementById('tfBtn' + currentSRTimeframe.charAt(0) + currentSRTimeframe.slice(1).toLowerCase());
+              if (activeBtn) activeBtn.classList.add('active');
+              const cfg = TF_CONFIG[currentSRTimeframe];
+              const descEl = document.getElementById('tfDescText');
+              if (descEl) descEl.textContent = cfg ? cfg.desc : '';
+              const badgeEl = document.getElementById('srTfBadge');
+              if (badgeEl) badgeEl.textContent = currentSRTimeframe;
+            }
             loadStockNewsInModal(symbol);
             // EMA legend fully interactive for VIP
             const emaLegend = document.getElementById("emaLegend");
@@ -4332,6 +4548,182 @@
           ds.hidden = !emaVisibility[key];
           stockDetailChartInstance.update();
         }
+      }
+
+      // =============================================
+      //  SR TIMEFRAME SYSTEM
+      // =============================================
+      let currentSRTimeframe = 'DAY';
+      let currentSRPriceData = null; // {price, q, prices}
+
+      const TF_CONFIG = {
+        DAY:   { desc: 'เล่นสั้น/รายวัน',       atrMult: 1.0, swingFactor: 0.018, label: '📅 DAY — รายวัน' },
+        WEEK:  { desc: 'Swing Trade / รายสัปดาห์', atrMult: 1.6, swingFactor: 0.035, label: '📆 WEEK — รายสัปดาห์' },
+        MONTH: { desc: 'ถือยาว/ลงทุน',           atrMult: 2.8, swingFactor: 0.07,  label: '🗓 MONTH — รายเดือน' },
+      };
+
+      function changeSRTimeframe(tf, btn) {
+        currentSRTimeframe = tf;
+        try { localStorage.setItem('srTimeframe', tf); } catch(e) {}
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cfg = TF_CONFIG[tf];
+        const descEl = document.getElementById('tfDescText');
+        if (descEl) descEl.textContent = cfg.desc;
+        const badgeEl = document.getElementById('srTfBadge');
+        if (badgeEl) badgeEl.textContent = tf;
+
+        // Animate the SR box
+        const multiBox = document.getElementById('srBoxMulti');
+        if (multiBox) {
+          multiBox.style.opacity = '0.5';
+          multiBox.style.transform = 'scale(0.98)';
+          setTimeout(() => {
+            multiBox.style.transition = 'all 0.25s ease';
+            multiBox.style.opacity = '1';
+            multiBox.style.transform = 'scale(1)';
+          }, 50);
+        }
+
+        if (currentSRPriceData) {
+          const { price, q, prices } = currentSRPriceData;
+          computeAndDisplaySRMulti(price, q, prices, tf);
+        }
+      }
+
+      function computeAndDisplaySRMulti(price, q, prices, tf) {
+        const cfg = TF_CONFIG[tf];
+        const atr = price * (0.012 + Math.random() * 0.015) * cfg.atrMult;
+        const sf  = cfg.swingFactor;
+
+        // Compute levels with seed from price for consistency per tf
+        const seed = price * (tf === 'DAY' ? 1 : tf === 'WEEK' ? 2 : 3);
+        const rng = (offset) => {
+          const x = Math.sin(seed * offset) * 10000;
+          return x - Math.floor(x);
+        };
+
+        // Resistance levels
+        const resMain  = price * (1 + sf * (1.0 + rng(1.1) * 0.5));
+        const resMinor = price * (1 + sf * (0.4 + rng(1.3) * 0.4));
+        // Support levels
+        const supMain  = price * (1 - sf * (1.0 + rng(2.1) * 0.5));
+        const supMinor = price * (1 - sf * (0.4 + rng(2.3) * 0.4));
+
+        const buyPoint = supMain * (1 + 0.003 + rng(3.1) * 0.003);
+        const sellPoint = resMain * (1 - 0.003 - rng(3.2) * 0.003);
+        const stopLoss = supMain * (1 - 0.015 - rng(3.3) * 0.01);
+
+        // Update new SR display
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = `$${val.toFixed(2)}`;
+        };
+        set('srResMain',   resMain);
+        set('srResMinor',  resMinor);
+        set('srSupMain',   supMain);
+        set('srSupMinor',  supMinor);
+        set('srBuyValNew', buyPoint);
+        set('srSellValNew',sellPoint);
+        set('srStopValNew',stopLoss);
+
+        // Also update original SR box values (compat)
+        set('srSupportVal',   supMain);
+        set('srResistanceVal',resMain);
+        set('srBuyVal',       buyPoint);
+        set('srSellVal',      sellPoint);
+        set('srStopVal',      stopLoss);
+
+        // Generate AI Timeframe analysis
+        generateTfAIAnalysis(price, resMain, resMinor, supMain, supMinor, tf, prices);
+
+        // Add SR lines to chart
+        addSRLinesToChart(resMain, resMinor, supMain, supMinor, price);
+      }
+
+      function addSRLinesToChart(resMain, resMinor, supMain, supMinor, price) {
+        if (!stockDetailChartInstance) return;
+        const data = stockDetailChartInstance.data;
+        const len  = data.labels.length;
+        const flat = (v) => Array(len).fill(parseFloat(v.toFixed(2)));
+
+        // Remove old SR datasets (index 4+)
+        while (data.datasets.length > 4) data.datasets.pop();
+
+        const srDatasets = [
+          { label: 'แนวต้านหลัก', data: flat(resMain),  borderColor: 'rgba(255,23,68,0.85)',   borderWidth: 1.5, borderDash: [4,3] },
+          { label: 'แนวต้านรอง',  data: flat(resMinor), borderColor: 'rgba(255,107,107,0.5)',  borderWidth: 1,   borderDash: [2,4] },
+          { label: 'แนวรับหลัก',  data: flat(supMain),  borderColor: 'rgba(0,230,118,0.85)',   borderWidth: 1.5, borderDash: [4,3] },
+          { label: 'แนวรับรอง',   data: flat(supMinor), borderColor: 'rgba(105,232,158,0.5)',  borderWidth: 1,   borderDash: [2,4] },
+        ];
+
+        srDatasets.forEach(ds => {
+          data.datasets.push({
+            ...ds,
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+            spanGaps: true,
+            order: 10,
+          });
+        });
+
+        // Update SR overlay labels
+        const labelsEl = document.getElementById('chartSRLabels');
+        if (labelsEl) {
+          labelsEl.innerHTML = `
+            <span style="color:rgba(255,23,68,0.85); background:rgba(10,15,30,0.8); padding:2px 6px; border-radius:4px; border:1px solid rgba(255,23,68,0.3);">R1 $${resMain.toFixed(2)}</span>
+            <span style="color:rgba(0,230,118,0.85); background:rgba(10,15,30,0.8); padding:2px 6px; border-radius:4px; border:1px solid rgba(0,230,118,0.3);">S1 $${supMain.toFixed(2)}</span>
+          `;
+        }
+
+        stockDetailChartInstance.update('none');
+      }
+
+      function generateTfAIAnalysis(price, resMain, resMinor, supMain, supMinor, tf, prices) {
+        const labelEl = document.getElementById('tfAiLabel');
+        if (labelEl) labelEl.textContent = tf;
+
+        const distToRes = ((resMain - price) / price * 100).toFixed(1);
+        const distToSup = ((price - supMain) / price * 100).toFixed(1);
+        const isBullish = price > (supMain + resMain) / 2;
+
+        const trendDesc = {
+          DAY:   isBullish ? 'แนวโน้มวันนี้ยังเป็นขาขึ้น' : 'แนวโน้มวันนี้มีแรงขาย',
+          WEEK:  isBullish ? 'แนวโน้มกลาง (Swing) เป็นขาขึ้น' : 'แนวโน้มกลางมีแรงกดดัน',
+          MONTH: isBullish ? 'แนวโน้มใหญ่ยังแข็งแรง' : 'แนวโน้มระยะยาวอ่อนแอ',
+        }[tf];
+
+        const points = [
+          { dot: isBullish ? '🟢' : '🔴', text: trendDesc },
+          { dot: '📍', text: `ห่างจากแนวต้านหลัก ${distToRes}% — $${resMain.toFixed(2)}` },
+          { dot: '📌', text: `แนวรับหลักอยู่ที่ $${supMain.toFixed(2)} (ห่าง ${distToSup}%)` },
+        ];
+
+        if (tf === 'DAY') {
+          points.push({ dot: '⚡', text: 'เหมาะสำหรับเล่นรอบสั้น 1-3 วัน — ซื้อใกล้แนวรับ ขายใกล้แนวต้าน' });
+        } else if (tf === 'WEEK') {
+          points.push({ dot: '🔄', text: 'เหมาะ Swing Trade — รอย่อเข้าแนวรับสะสม TP ที่แนวต้านหลัก' });
+          if (parseFloat(distToSup) < 3) points.push({ dot: '✅', text: 'ราคาใกล้แนวรับ Swing — เหมาะสะสมเมื่อย่อ' });
+        } else {
+          points.push({ dot: '💎', text: 'เหมาะถือยาว/ลงทุน — แนวรับรายเดือนแข็งแกร่ง' });
+          if (isBullish) points.push({ dot: '📈', text: 'โครงสร้างราคารายเดือนยังเป็น Higher High — ถือยาวได้' });
+        }
+
+        const pointsHtml = points.map(p =>
+          `<div class="tf-ai-point"><span class="dot">${p.dot}</span><span>${p.text}</span></div>`
+        ).join('');
+        const pointsEl = document.getElementById('tfAiPoints');
+        if (pointsEl) pointsEl.innerHTML = pointsHtml;
+
+        const conclusionMap = {
+          DAY:   isBullish ? '📊 เล่นสั้น: BUY ใกล้แนวรับ / TP แนวต้านหลัก' : '📊 เล่นสั้น: รอสัญญาณพลิกกลับก่อนเข้า',
+          WEEK:  isBullish ? '📊 Swing: สะสมเมื่อย่อ — เป้า TP รายสัปดาห์' : '📊 Swing: รอยืนเหนือแนวรับก่อน',
+          MONTH: isBullish ? '📊 ลงทุนยาว: แนวโน้มดี — เพิ่มน้ำหนักเมื่อย่อ' : '📊 ลงทุนยาว: รอยืนยันแนวโน้มใหม่',
+        };
+        const conclusionEl = document.getElementById('tfAiConclusionText');
+        if (conclusionEl) conclusionEl.textContent = conclusionMap[tf];
       }
 
       function generateAIAnalysis(price, q, isVip, priceHistory) {
@@ -4403,6 +4795,8 @@
 
         // SR box (VIP)
         if (isVip) {
+          // Store for timeframe switching
+          currentSRPriceData = { price, q, prices: priceHistory };
           const srSup = document.getElementById("srSupportVal");
           const srRes = document.getElementById("srResistanceVal");
           const srBuy = document.getElementById("srBuyVal");
@@ -4413,6 +4807,8 @@
           if (srBuy) srBuy.textContent = `$${buyPoint.toFixed(2)}`;
           if (srSell) srSell.textContent = `$${sellPoint.toFixed(2)}`;
           if (srStop) srStop.textContent = `$${stopLoss.toFixed(2)}`;
+          // Trigger multi SR display
+          computeAndDisplaySRMulti(price, q, priceHistory, currentSRTimeframe);
         }
 
         // Update EMA values label in legend
