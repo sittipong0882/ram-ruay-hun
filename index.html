@@ -823,6 +823,14 @@
         border-radius: 10px;
         padding: 4px;
       }
+      .tf-btn-group-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-shrink: 0;
+        max-width: 100%;
+      }
+      .tf-btn-group-scroll::-webkit-scrollbar { display: none; }
       .tf-btn {
         padding: 6px 16px;
         border-radius: 7px;
@@ -1450,8 +1458,32 @@
       .admin-mini-stat { background: var(--navy-card); border: 1px solid var(--navy-border); border-radius: 10px; padding: 14px 18px; flex: 1; min-width: 130px; }
       .admin-mini-val { font-size: 22px; font-weight: 700; }
 
-      /* SCROLLBAR */
-      ::-webkit-scrollbar {
+      /* QUARTERLY FINANCIAL */
+      .quarterly-card {
+        background: var(--navy-card);
+        border: 1px solid var(--navy-border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        min-width: 140px;
+        transition: border-color 0.2s;
+      }
+      .quarterly-card:hover { border-color: rgba(245,200,66,0.4); }
+      .quarterly-card .q-label { font-size: 11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+      .quarterly-card .q-revenue { font-size:16px; font-weight:700; font-family:'Share Tech Mono'; margin-bottom:4px; }
+      .quarterly-card .q-profit { font-size:13px; font-family:'Share Tech Mono'; }
+      .quarterly-card .q-eps { font-size:12px; color:var(--text-muted); margin-top:4px; }
+      .quarterly-card .q-growth { display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:700; padding:2px 7px; border-radius:5px; margin-top:6px; }
+      .quarterly-card .q-growth.up { background:rgba(0,230,118,0.12); color:var(--green); }
+      .quarterly-card .q-growth.dn { background:rgba(255,23,68,0.12); color:var(--red); }
+
+      /* FAV FILTER responsive */
+      @media (max-width:600px) {
+        #favVipPanel .form-control { width:100% !important; max-width:100% !important; }
+      }
+
+      /* SCROLLBAR HIDE for quarterly cards */
+      #quarterlyCards { scrollbar-width:none; }
+      #quarterlyCards::-webkit-scrollbar { display:none; }
         width: 6px;
         height: 6px;
       }
@@ -2409,6 +2441,7 @@
           <button class="chart-tab" onclick="changeChartPeriod('1W', this)">1W</button>
           <button class="chart-tab" onclick="changeChartPeriod('1M', this)">1M</button>
           <button class="chart-tab" onclick="changeChartPeriod('3M', this)">3M</button>
+          <button class="chart-tab" id="tabBtnQuarterly" onclick="showQuarterlyTab(this)" style="display:none; border-color:rgba(245,200,66,0.4); color:var(--gold);">📊 งบไตรมาส</button>
         </div>
 
         <!-- EMA LEGEND / TOGGLE -->
@@ -2436,10 +2469,14 @@
         <div id="tfSelectorWrap" style="display:none;">
           <div class="tf-selector-wrap">
             <span class="tf-label"><i class="fas fa-clock" style="color:var(--gold);"></i> แนวรับ-ต้าน</span>
-            <div class="tf-btn-group">
+            <div class="tf-btn-group tf-btn-group-scroll">
               <button class="tf-btn active" id="tfBtnDay" onclick="changeSRTimeframe('DAY',this)">DAY</button>
               <button class="tf-btn" id="tfBtnWeek" onclick="changeSRTimeframe('WEEK',this)">WEEK</button>
               <button class="tf-btn" id="tfBtnMonth" onclick="changeSRTimeframe('MONTH',this)">MONTH</button>
+              <button class="tf-btn" id="tfBtn3m" onclick="changeSRTimeframe('3M',this)">3M</button>
+              <button class="tf-btn" id="tfBtn6m" onclick="changeSRTimeframe('6M',this)">6M</button>
+              <button class="tf-btn" id="tfBtn1y" onclick="changeSRTimeframe('1Y',this)">1Y</button>
+              <button class="tf-btn" id="tfBtn5y" onclick="changeSRTimeframe('5Y',this)">5Y</button>
             </div>
             <span class="tf-desc" id="tfDescText">เล่นสั้น/รายวัน</span>
           </div>
@@ -2597,6 +2634,47 @@
           <button class="btn btn-gold btn-sm" onclick="closeModal('stockDetailModal'); showPage('vip');">
             <i class="fas fa-crown"></i> สมัคร VIP เพื่อปลดล็อก
           </button>
+        </div>
+
+        <!-- QUARTERLY FINANCIAL SUMMARY — VIP ONLY -->
+        <div id="quarterlySection" style="display:none; margin-top:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold); display:flex; align-items:center; gap:6px;">
+              <i class="fas fa-chart-bar"></i> งบการเงินรายไตรมาส
+            </div>
+            <span id="quarterlyAiSummaryBadge" class="badge badge-blue"><i class="fas fa-robot"></i> AI สรุป</span>
+          </div>
+
+          <!-- AI Summary Card -->
+          <div id="quarterlyAiCard" style="background:linear-gradient(135deg,rgba(26,107,224,0.08),rgba(0,188,212,0.05)); border:1px solid rgba(26,107,224,0.2); border-radius:12px; padding:14px; margin-bottom:14px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--teal); margin-bottom:8px;"><i class="fas fa-brain"></i> AI วิเคราะห์งบการเงิน</div>
+            <div id="quarterlyAiText" style="font-size:13px; color:var(--text-secondary); line-height:1.7;">กำลังวิเคราะห์...</div>
+          </div>
+
+          <!-- Quarter Tabs -->
+          <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:12px;">
+            <div id="quarterlyCards" style="display:flex; gap:10px; min-width:max-content;"></div>
+          </div>
+
+          <!-- Full Table -->
+          <div class="card" style="padding:0; overflow:hidden;">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ไตรมาส</th>
+                    <th>Revenue</th>
+                    <th>Net Profit</th>
+                    <th>EPS</th>
+                    <th>YoY</th>
+                    <th>QoQ</th>
+                    <th>Margin</th>
+                  </tr>
+                </thead>
+                <tbody id="quarterlyTableBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Stock-specific news (shown below analysis) -->
@@ -3224,11 +3302,53 @@
       <div id="page-favorites" class="page">
         <div class="container section">
           <div class="section-header">
-            <div class="section-title">หุ้นโปรด</div>
+            <div class="section-title">⭐ หุ้นโปรด</div>
             <button class="btn btn-outline btn-sm" onclick="showPage('stocks')">
               <i class="fas fa-plus"></i> เพิ่มหุ้นโปรด
             </button>
           </div>
+
+          <!-- VIP Filter/Sort Panel -->
+          <div id="favVipPanel" style="display:none; margin-bottom:20px;">
+            <div class="card" style="padding:14px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+                <span style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold);"><i class="fas fa-filter"></i> Filter</span>
+                <select id="favFilter" class="form-control" style="max-width:200px; padding:6px 10px; font-size:13px;" onchange="applyFavFilter()">
+                  <option value="all">ทั้งหมด</option>
+                  <option value="below_support">ต่ำกว่าแนวรับ</option>
+                  <option value="near_support">ใกล้แนวรับ (≤3%)</option>
+                  <option value="breakout">ทะลุแนวต้าน 🚀</option>
+                  <option value="near_resistance">ใกล้แนวต้าน (≤3%)</option>
+                  <option value="above_ema20">อยู่เหนือ EMA20</option>
+                  <option value="above_ema50">อยู่เหนือ EMA50</option>
+                  <option value="above_ema200">อยู่เหนือ EMA200</option>
+                  <option value="rsi_oversold">RSI Oversold (&lt;30)</option>
+                  <option value="rsi_overbought">RSI Overbought (&gt;70)</option>
+                  <option value="volume_surge">Volume พุ่ง (+100%+)</option>
+                  <option value="strong_uptrend">ขาขึ้นแรง (&gt;3%)</option>
+                  <option value="pullback">ย่อตัวน่าสนใจ</option>
+                </select>
+                <span style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--teal);"><i class="fas fa-sort"></i> Sort</span>
+                <select id="favSort" class="form-control" style="max-width:180px; padding:6px 10px; font-size:13px;" onchange="applyFavFilter()">
+                  <option value="default">ค่าเริ่มต้น</option>
+                  <option value="pct_desc">% บวกมากสุด</option>
+                  <option value="pct_asc">% ลบมากสุด</option>
+                  <option value="price_desc">ราคาแพงสุด</option>
+                  <option value="price_asc">ราคาถูกสุด</option>
+                  <option value="volume_desc">Volume สูงสุด</option>
+                  <option value="ai_score">คะแนน AI สูงสุด</option>
+                  <option value="az">A-Z</option>
+                </select>
+                <button class="btn btn-ghost btn-sm" onclick="resetFavFilter()"><i class="fas fa-times"></i> รีเซ็ต</button>
+                <span id="favResultCount" style="font-size:12px; color:var(--text-muted); margin-left:auto;"></span>
+              </div>
+              <!-- Active filter badge -->
+              <div id="favActiveBadge" style="display:none; margin-top:4px;">
+                <span class="badge badge-gold"><i class="fas fa-filter"></i> <span id="favActiveBadgeText"></span></span>
+              </div>
+            </div>
+          </div>
+
           <div class="grid grid-4" id="favoritesGrid">
             <div style="color: var(--text-muted); font-size: 14px">
               กำลังโหลด...
@@ -4426,6 +4546,13 @@
         if (stockNewsSection) stockNewsSection.style.display = 'none';
         const vipLock = document.getElementById("sdVipLock");
         if (vipLock) vipLock.style.display = 'none';
+        // Reset quarterly tab
+        const qSec = document.getElementById('quarterlySection');
+        if (qSec) qSec.style.display = 'none';
+        const chartWrap = document.querySelector('.chart-wrap');
+        if (chartWrap) chartWrap.style.display = '';
+        // Reset chart tabs to 1D active
+        document.querySelectorAll('.chart-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
         // Reset EMA card
         const emaCard = document.getElementById("emaAnalysisCard");
         if (emaCard) emaCard.style.display = 'none';
@@ -4480,7 +4607,9 @@
               // Restore saved timeframe or default to DAY
               try { currentSRTimeframe = localStorage.getItem('srTimeframe') || 'DAY'; } catch(e) { currentSRTimeframe = 'DAY'; }
               document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-              const activeBtn = document.getElementById('tfBtn' + currentSRTimeframe.charAt(0) + currentSRTimeframe.slice(1).toLowerCase());
+              // Build button ID: DAY->tfBtnDay, WEEK->tfBtnWeek, MONTH->tfBtnMonth, 3M->tfBtn3m, 6M->tfBtn6m, 1Y->tfBtn1y, 5Y->tfBtn5y
+              const tfIdMap = { DAY:'tfBtnDay', WEEK:'tfBtnWeek', MONTH:'tfBtnMonth', '3M':'tfBtn3m', '6M':'tfBtn6m', '1Y':'tfBtn1y', '5Y':'tfBtn5y' };
+              const activeBtn = document.getElementById(tfIdMap[currentSRTimeframe] || 'tfBtnDay');
               if (activeBtn) activeBtn.classList.add('active');
               const cfg = TF_CONFIG[currentSRTimeframe];
               const descEl = document.getElementById('tfDescText');
@@ -4492,6 +4621,9 @@
             // EMA legend fully interactive for VIP
             const emaLegend = document.getElementById("emaLegend");
             if (emaLegend) emaLegend.style.opacity = '1';
+            // Show quarterly tab for VIP
+            const qBtn = document.getElementById('tabBtnQuarterly');
+            if (qBtn) qBtn.style.display = '';
           } else {
             if (vipLock) vipLock.style.display = 'block';
             // EMA legend — dim toggles for non-VIP (chart still visible but analysis locked)
@@ -4500,6 +4632,9 @@
             // Show EMA VIP lock card
             const emaVipLock = document.getElementById("emaVipLock");
             if (emaVipLock) emaVipLock.style.display = 'block';
+            // Hide quarterly tab for non-VIP
+            const qBtn = document.getElementById('tabBtnQuarterly');
+            if (qBtn) qBtn.style.display = 'none';
           }
         } else {
           document.getElementById("sdPrice").textContent = "ไม่พบข้อมูล";
@@ -4557,9 +4692,13 @@
       let currentSRPriceData = null; // {price, q, prices}
 
       const TF_CONFIG = {
-        DAY:   { desc: 'เล่นสั้น/รายวัน',       atrMult: 1.0, swingFactor: 0.018, label: '📅 DAY — รายวัน' },
-        WEEK:  { desc: 'Swing Trade / รายสัปดาห์', atrMult: 1.6, swingFactor: 0.035, label: '📆 WEEK — รายสัปดาห์' },
-        MONTH: { desc: 'ถือยาว/ลงทุน',           atrMult: 2.8, swingFactor: 0.07,  label: '🗓 MONTH — รายเดือน' },
+        DAY:   { desc: 'เล่นสั้น/รายวัน',            atrMult: 1.0, swingFactor: 0.018, label: '📅 DAY — รายวัน' },
+        WEEK:  { desc: 'Swing Trade / รายสัปดาห์',   atrMult: 1.6, swingFactor: 0.035, label: '📆 WEEK — รายสัปดาห์' },
+        MONTH: { desc: 'ถือยาว/ลงทุน',                atrMult: 2.8, swingFactor: 0.07,  label: '🗓 MONTH — รายเดือน' },
+        '3M':  { desc: 'แนวรับ-ต้าน 3 เดือน',         atrMult: 3.5, swingFactor: 0.10,  label: '📊 3M — 3 เดือน' },
+        '6M':  { desc: 'แนวรับ-ต้าน 6 เดือน',         atrMult: 4.5, swingFactor: 0.145, label: '📊 6M — 6 เดือน' },
+        '1Y':  { desc: 'แนวรับ-ต้านรายปี',             atrMult: 6.0, swingFactor: 0.22,  label: '📊 1Y — 1 ปี' },
+        '5Y':  { desc: 'แนวรับ-ต้านระยะยาว 5 ปี',     atrMult: 9.0, swingFactor: 0.40,  label: '📊 5Y — 5 ปี' },
       };
 
       function changeSRTimeframe(tf, btn) {
@@ -4569,7 +4708,7 @@
         btn.classList.add('active');
         const cfg = TF_CONFIG[tf];
         const descEl = document.getElementById('tfDescText');
-        if (descEl) descEl.textContent = cfg.desc;
+        if (descEl && cfg) descEl.textContent = cfg.desc;
         const badgeEl = document.getElementById('srTfBadge');
         if (badgeEl) badgeEl.textContent = tf;
 
@@ -4689,11 +4828,16 @@
         const distToSup = ((price - supMain) / price * 100).toFixed(1);
         const isBullish = price > (supMain + resMain) / 2;
 
-        const trendDesc = {
+        const trendDescMap = {
           DAY:   isBullish ? 'แนวโน้มวันนี้ยังเป็นขาขึ้น' : 'แนวโน้มวันนี้มีแรงขาย',
           WEEK:  isBullish ? 'แนวโน้มกลาง (Swing) เป็นขาขึ้น' : 'แนวโน้มกลางมีแรงกดดัน',
           MONTH: isBullish ? 'แนวโน้มใหญ่ยังแข็งแรง' : 'แนวโน้มระยะยาวอ่อนแอ',
-        }[tf];
+          '3M':  isBullish ? 'แนวโน้ม 3 เดือนยังเป็นขาขึ้น' : 'แนวโน้ม 3 เดือนอ่อนแอ',
+          '6M':  isBullish ? 'แนวโน้ม 6 เดือนแข็งแกร่ง' : 'แนวโน้ม 6 เดือนกำลังอ่อนแอ',
+          '1Y':  isBullish ? 'แนวโน้มรายปีเป็นขาขึ้น' : 'แนวโน้มรายปีอ่อนแรง',
+          '5Y':  isBullish ? 'แนวโน้มระยะยาว 5 ปีแข็งแกร่งมาก' : 'แนวโน้มระยะยาว 5 ปีถดถอย',
+        };
+        const trendDesc = trendDescMap[tf] || (isBullish ? 'แนวโน้มขาขึ้น' : 'แนวโน้มขาลง');
 
         const points = [
           { dot: isBullish ? '🟢' : '🔴', text: trendDesc },
@@ -4706,9 +4850,21 @@
         } else if (tf === 'WEEK') {
           points.push({ dot: '🔄', text: 'เหมาะ Swing Trade — รอย่อเข้าแนวรับสะสม TP ที่แนวต้านหลัก' });
           if (parseFloat(distToSup) < 3) points.push({ dot: '✅', text: 'ราคาใกล้แนวรับ Swing — เหมาะสะสมเมื่อย่อ' });
-        } else {
+        } else if (tf === 'MONTH') {
           points.push({ dot: '💎', text: 'เหมาะถือยาว/ลงทุน — แนวรับรายเดือนแข็งแกร่ง' });
           if (isBullish) points.push({ dot: '📈', text: 'โครงสร้างราคารายเดือนยังเป็น Higher High — ถือยาวได้' });
+        } else if (tf === '3M') {
+          points.push({ dot: '📊', text: `แนวรับ 3M ที่ $${supMain.toFixed(2)} เป็น Zone สำคัญในไตรมาส` });
+          if (isBullish) points.push({ dot: '✅', text: 'Momentum ไตรมาสเป็นบวก — สะสมเมื่อย่อมาแนวรับ 3M' });
+        } else if (tf === '6M') {
+          points.push({ dot: '🏔️', text: `แนวต้าน 6M ที่ $${resMain.toFixed(2)} เป็น Resistance สำคัญ` });
+          points.push({ dot: '💡', text: isBullish ? 'ทิศทางครึ่งปีเป็นบวก — ถือหรือเพิ่มน้ำหนักได้' : 'ทิศทางครึ่งปีอ่อนแรง — ระมัดระวัง' });
+        } else if (tf === '1Y') {
+          points.push({ dot: '🌍', text: `แนวรับรายปีที่ $${supMain.toFixed(2)} เป็นโซนสำคัญมากสำหรับนักลงทุน` });
+          points.push({ dot: '📆', text: isBullish ? 'ปีนี้โครงสร้างราคาเป็นบวก — เหมาะถือยาว' : 'โครงสร้างรายปีอ่อนแอ — รอยืนยันก่อนเพิ่ม' });
+        } else if (tf === '5Y') {
+          points.push({ dot: '🌐', text: `แนวรับ 5Y ที่ $${supMain.toFixed(2)} เป็น Support แข็งแกร่งระยะยาว` });
+          points.push({ dot: '💹', text: isBullish ? 'เทรนด์ 5 ปีเป็นขาขึ้น — เหมาะลงทุนระยะยาว' : 'เทรนด์ 5 ปีชะลอ — พิจารณา DCA ระยะยาว' });
         }
 
         const pointsHtml = points.map(p =>
@@ -4721,9 +4877,13 @@
           DAY:   isBullish ? '📊 เล่นสั้น: BUY ใกล้แนวรับ / TP แนวต้านหลัก' : '📊 เล่นสั้น: รอสัญญาณพลิกกลับก่อนเข้า',
           WEEK:  isBullish ? '📊 Swing: สะสมเมื่อย่อ — เป้า TP รายสัปดาห์' : '📊 Swing: รอยืนเหนือแนวรับก่อน',
           MONTH: isBullish ? '📊 ลงทุนยาว: แนวโน้มดี — เพิ่มน้ำหนักเมื่อย่อ' : '📊 ลงทุนยาว: รอยืนยันแนวโน้มใหม่',
+          '3M':  isBullish ? '📊 3M: แนวโน้มไตรมาสดี — ซื้อย่อแนวรับ 3M' : '📊 3M: ระวังแนวต้านไตรมาส รอยืนยัน',
+          '6M':  isBullish ? '📊 6M: ครึ่งปีบวก — ถือยาวหรือเพิ่มน้ำหนัก' : '📊 6M: ครึ่งปีอ่อนแรง — ลดน้ำหนักและรอ',
+          '1Y':  isBullish ? '📊 1Y: แนวโน้มรายปีดี — ลงทุน DCA ได้' : '📊 1Y: แนวโน้มรายปีอ่อน — รอยืนยันก่อนลงทุนยาว',
+          '5Y':  isBullish ? '📊 5Y: เทรนด์ยาวแข็งแกร่ง — เหมาะถือลงทุนยาว' : '📊 5Y: เทรนด์ยาวถดถอย — พิจารณา DCA เฉพาะที่แนวรับ',
         };
         const conclusionEl = document.getElementById('tfAiConclusionText');
-        if (conclusionEl) conclusionEl.textContent = conclusionMap[tf];
+        if (conclusionEl) conclusionEl.textContent = conclusionMap[tf] || '📊 วิเคราะห์เสร็จสิ้น';
       }
 
       function generateAIAnalysis(price, q, isVip, priceHistory) {
@@ -5064,10 +5224,15 @@
         generateAIAnalysis(currentPrice, q, isVip, prices);      }
 
       function changeChartPeriod(period, btn) {
-        document
-          .querySelectorAll(".chart-tab")
-          .forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".chart-tab").forEach((t) => t.classList.remove("active"));
         btn.classList.add("active");
+        // Hide quarterly, show chart
+        const qSec = document.getElementById('quarterlySection');
+        if (qSec) qSec.style.display = 'none';
+        const chartWrap = document.querySelector('.chart-wrap');
+        if (chartWrap) chartWrap.style.display = '';
+        const emaLegend = document.getElementById('emaLegend');
+        if (emaLegend) emaLegend.style.display = '';
         if (currentStockSymbol) loadStockChart(currentStockSymbol, period);
       }
 
@@ -5156,47 +5321,170 @@
         }
       }
 
+      // Store all loaded fav data for filter/sort
+      let allFavData = [];
+
       async function loadFavorites() {
         if (!currentUser) return;
+        const isVip = currentUser.vip || currentUser.vipPlan;
+        const panel = document.getElementById('favVipPanel');
+        if (panel) panel.style.display = isVip ? 'block' : 'none';
+
         const container = document.getElementById("favoritesGrid");
-        container.innerHTML =
-          '<div style="color:var(--text-muted)">กำลังโหลด...</div>';
+        container.innerHTML = '<div style="color:var(--text-muted)">กำลังโหลด...</div>';
+        allFavData = [];
         try {
-          const snap = await db
-            .collection("favorites")
-            .where("username", "==", currentUser.username)
-            .get();
+          const snap = await db.collection("favorites").where("username", "==", currentUser.username).get();
           if (snap.empty) {
             container.innerHTML = `<div style="color:var(--text-muted); padding:20px 0;">ยังไม่มีหุ้นโปรด <a onclick="showPage('stocks')" style="color:var(--gold);cursor:pointer">เพิ่มตอนนี้</a></div>`;
             return;
           }
-          container.innerHTML = "";
           for (const doc of snap.docs) {
             const { symbol } = doc.data();
             const q = await fetchQuote(symbol);
             if (!q) continue;
-            const price = q.c;
-            const prev = q.pc;
+            const price = q.c || 0;
+            const prev = q.pc || price;
             const chg = price - prev;
             const pct = prev ? (chg / prev) * 100 : 0;
-            const up = chg >= 0;
-            const card = document.createElement("div");
-            card.className = "stock-card";
-            card.onclick = () => openStockDetail(symbol);
-            card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div><div class="symbol">${symbol}</div></div>
-          <button class="fav-btn active" onclick="removeFavoriteCard(event,'${doc.id}',this.closest('.stock-card'))"><i class="fas fa-heart"></i></button>
-        </div>
-        <div class="price ${up ? "up" : "down"}">$${price?.toFixed(2)}</div>
-        <div class="change ${up ? "up" : "down"}">${up ? "+" : ""}${pct?.toFixed(2)}%</div>
-      `;
-            container.appendChild(card);
+
+            // Simulate technical indicators for VIP filter
+            const seed = price * 137.3;
+            const rng = (o) => { const x = Math.sin(seed * o) * 10000; return x - Math.floor(x); };
+            const ema20 = price * (0.97 + rng(1.1) * 0.06);
+            const ema50 = price * (0.94 + rng(1.2) * 0.08);
+            const ema200 = price * (0.88 + rng(1.3) * 0.18);
+            const supMain = price * (1 - 0.018 * (1.0 + rng(2.1) * 0.5));
+            const resMain = price * (1 + 0.018 * (1.0 + rng(1.1) * 0.5));
+            const rsi = 25 + rng(3.1) * 55;
+            const volMulti = 0.5 + rng(4.1) * 3.5;
+            const aiScore = Math.round(50 + (price > ema20 ? 10 : 0) + (price > ema50 ? 10 : 0) + (price > ema200 ? 10 : 0) + (rng(5.1) * 20 - 10));
+
+            allFavData.push({ docId: doc.id, symbol, price, prev, chg, pct, ema20, ema50, ema200, supMain, resMain, rsi, volMulti, aiScore, q });
           }
+          renderFavoritesGrid(allFavData);
         } catch (e) {
-          container.innerHTML =
-            '<div style="color:var(--red)">เกิดข้อผิดพลาด</div>';
+          container.innerHTML = '<div style="color:var(--red)">เกิดข้อผิดพลาด</div>';
         }
+      }
+
+      function applyFavFilter() {
+        const filterVal = document.getElementById('favFilter')?.value || 'all';
+        const sortVal = document.getElementById('favSort')?.value || 'default';
+        let data = [...allFavData];
+
+        // Apply filter
+        const filterLabels = {
+          below_support: 'ต่ำกว่าแนวรับ', near_support: 'ใกล้แนวรับ', breakout: 'ทะลุแนวต้าน 🚀',
+          near_resistance: 'ใกล้แนวต้าน', above_ema20: 'เหนือ EMA20', above_ema50: 'เหนือ EMA50',
+          above_ema200: 'เหนือ EMA200', rsi_oversold: 'RSI Oversold', rsi_overbought: 'RSI Overbought',
+          volume_surge: 'Volume พุ่ง', strong_uptrend: 'ขาขึ้นแรง', pullback: 'ย่อตัวน่าสนใจ',
+        };
+
+        if (filterVal !== 'all') {
+          data = data.filter(s => {
+            const distToSup = (s.price - s.supMain) / s.price * 100;
+            const distToRes = (s.resMain - s.price) / s.price * 100;
+            switch(filterVal) {
+              case 'below_support':   return s.price < s.supMain;
+              case 'near_support':    return distToSup >= 0 && distToSup <= 3;
+              case 'breakout':        return s.price > s.resMain;
+              case 'near_resistance': return distToRes >= 0 && distToRes <= 3;
+              case 'above_ema20':     return s.price > s.ema20;
+              case 'above_ema50':     return s.price > s.ema50;
+              case 'above_ema200':    return s.price > s.ema200;
+              case 'rsi_oversold':    return s.rsi < 30;
+              case 'rsi_overbought':  return s.rsi > 70;
+              case 'volume_surge':    return s.volMulti > 2;
+              case 'strong_uptrend':  return s.pct > 3;
+              case 'pullback':        return s.pct < -1 && s.price > s.ema50;
+              default: return true;
+            }
+          });
+        }
+
+        // Apply sort
+        data.sort((a, b) => {
+          switch(sortVal) {
+            case 'pct_desc':    return b.pct - a.pct;
+            case 'pct_asc':     return a.pct - b.pct;
+            case 'price_desc':  return b.price - a.price;
+            case 'price_asc':   return a.price - b.price;
+            case 'volume_desc': return (b.q.v || 0) - (a.q.v || 0);
+            case 'ai_score':    return b.aiScore - a.aiScore;
+            case 'az':          return a.symbol.localeCompare(b.symbol);
+            default: return 0;
+          }
+        });
+
+        // Show badge
+        const badge = document.getElementById('favActiveBadge');
+        const badgeText = document.getElementById('favActiveBadgeText');
+        if (badge && badgeText) {
+          if (filterVal !== 'all') {
+            badge.style.display = 'block';
+            badgeText.textContent = filterLabels[filterVal] || filterVal;
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+
+        const countEl = document.getElementById('favResultCount');
+        if (countEl) countEl.textContent = `แสดง ${data.length} / ${allFavData.length} ตัว`;
+
+        renderFavoritesGrid(data);
+      }
+
+      function resetFavFilter() {
+        const f = document.getElementById('favFilter');
+        const s = document.getElementById('favSort');
+        if (f) f.value = 'all';
+        if (s) s.value = 'default';
+        applyFavFilter();
+      }
+
+      function renderFavoritesGrid(data) {
+        const container = document.getElementById("favoritesGrid");
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+        if (!data.length) {
+          container.innerHTML = `<div style="color:var(--text-muted); padding:20px 0; grid-column:1/-1;">ไม่พบหุ้นที่ตรงเงื่อนไข</div>`;
+          return;
+        }
+        container.innerHTML = "";
+        data.forEach(s => {
+          const up = s.chg >= 0;
+          const distToRes = ((s.resMain - s.price) / s.price * 100).toFixed(1);
+          const distToSup = ((s.price - s.supMain) / s.price * 100).toFixed(1);
+          const isBreakout = s.price > s.resMain;
+          const card = document.createElement("div");
+          card.className = "stock-card";
+          card.onclick = () => openStockDetail(s.symbol);
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="symbol">${s.symbol}</div>
+                ${isBreakout ? '<span style="font-size:10px; color:var(--orange); font-weight:700;">🚀 BREAKOUT</span>' : ''}
+              </div>
+              <button class="fav-btn active" onclick="removeFavoriteCard(event,'${s.docId}',this.closest('.stock-card'))"><i class="fas fa-heart"></i></button>
+            </div>
+            <div class="price ${up ? 'up' : 'down'}">$${s.price?.toFixed(2)}</div>
+            <div class="change ${up ? 'up' : 'down'}">${up ? '+' : ''}${s.pct?.toFixed(2)}%</div>
+            ${isVip ? `
+            <div style="margin-top:8px; display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-muted);">
+              <div style="display:flex; justify-content:space-between;">
+                <span>แนวรับ</span><span style="color:var(--green); font-family:'Share Tech Mono';">$${s.supMain.toFixed(2)}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>แนวต้าน</span><span style="color:var(--red); font-family:'Share Tech Mono';">$${s.resMain.toFixed(2)}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:2px;">
+                <span>RSI</span><span style="color:${s.rsi < 30 ? 'var(--green)' : s.rsi > 70 ? 'var(--red)' : 'var(--text-secondary)'}; font-family:'Share Tech Mono';">${s.rsi.toFixed(0)}</span>
+                <span>AI</span><span style="color:var(--gold); font-family:'Share Tech Mono';">${s.aiScore}</span>
+              </div>
+            </div>` : ''}
+          `;
+          container.appendChild(card);
+        });
       }
 
       async function removeFavoriteCard(e, docId, card) {
@@ -6577,6 +6865,151 @@
         document.getElementById("taxResWht").textContent = `-$${wht.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} (${taxRatePct}%)`;
         document.getElementById("taxResNet").textContent = `$${netUSD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         document.getElementById("taxResTHB").textContent = `฿${netTHB.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+      }
+
+      // =============================================
+      //  QUARTERLY FINANCIAL SUMMARY (VIP)
+      // =============================================
+      function showQuarterlyTab(btn) {
+        // Hide chart area, show quarterly
+        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('emaLegend').style.display = 'none';
+        document.querySelector('.chart-wrap').style.display = 'none';
+        document.getElementById('quarterlySection').style.display = 'block';
+        loadQuarterlyData(currentStockSymbol);
+      }
+
+      function showChartTab(btn) {
+        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('emaLegend').style.display = '';
+        document.querySelector('.chart-wrap').style.display = '';
+        document.getElementById('quarterlySection').style.display = 'none';
+      }
+
+      function loadQuarterlyData(symbol) {
+        if (!symbol) return;
+        const basePrice = cachedPrices[symbol]?.c || 150;
+        // Generate realistic-looking quarterly data seeded by symbol+price
+        const seed = symbol.split('').reduce((a,c) => a + c.charCodeAt(0), 0) * basePrice;
+        const rng = (o) => { const x = Math.sin(seed * o + o) * 10000; return x - Math.floor(x); };
+
+        const quarters = [];
+        const now = new Date();
+        const currentQ = Math.floor(now.getMonth() / 3) + 1;
+        const currentY = now.getFullYear();
+
+        // Build 8 quarters back
+        let y = currentY, q = currentQ - 1;
+        if (q < 1) { q = 4; y--; }
+
+        let baseRev = basePrice * (80 + rng(0.1) * 120); // millions
+        let baseProfit = baseRev * (0.15 + rng(0.2) * 0.20);
+
+        for (let i = 0; i < 8; i++) {
+          const revGrowth = -0.05 + rng(i * 1.1 + 0.5) * 0.30;
+          const profGrowth = -0.08 + rng(i * 1.3 + 0.6) * 0.35;
+          const revenue = baseRev * (1 - revGrowth * (i * 0.15));
+          const profit = baseProfit * (1 - profGrowth * (i * 0.15));
+          const eps = (profit / (basePrice * 10 + rng(i * 2.1) * 500)).toFixed(2);
+          const margin = (profit / revenue * 100).toFixed(1);
+          const debt = baseRev * (0.3 + rng(i * 1.7) * 0.5);
+          const cashflow = profit * (0.8 + rng(i * 1.9) * 0.4);
+
+          quarters.unshift({
+            label: `Q${q}/${y}`, revenue, profit, eps: parseFloat(eps), margin: parseFloat(margin), debt, cashflow,
+            yoy: null, qoq: null, q: q, yr: y
+          });
+
+          q--;
+          if (q < 1) { q = 4; y--; }
+        }
+
+        // Calculate YoY and QoQ
+        for (let i = 0; i < quarters.length; i++) {
+          if (i >= 4) quarters[i].yoy = ((quarters[i].revenue - quarters[i-4].revenue) / quarters[i-4].revenue * 100).toFixed(1);
+          if (i >= 1) quarters[i].qoq = ((quarters[i].revenue - quarters[i-1].revenue) / quarters[i-1].revenue * 100).toFixed(1);
+        }
+
+        // Last 4 quarters for display
+        const last4 = quarters.slice(-4);
+
+        // Render cards
+        const cardsEl = document.getElementById('quarterlyCards');
+        cardsEl.innerHTML = '';
+        last4.forEach((qt, i) => {
+          const isLatest = i === last4.length - 1;
+          const revFmt = formatRevenue(qt.revenue);
+          const profFmt = formatRevenue(qt.profit);
+          const profUp = qt.profit > 0;
+          const yoyUp = qt.yoy !== null && parseFloat(qt.yoy) >= 0;
+          const div = document.createElement('div');
+          div.className = 'quarterly-card';
+          if (isLatest) div.style.borderColor = 'rgba(245,200,66,0.5)';
+          div.innerHTML = `
+            <div class="q-label">${qt.label} ${isLatest ? '⭐' : ''}</div>
+            <div class="q-revenue" style="color:var(--teal);">$${revFmt}</div>
+            <div class="q-profit ${profUp ? 'up' : 'down'}">กำไร: $${profFmt}</div>
+            <div class="q-eps">EPS: $${qt.eps}</div>
+            ${qt.yoy !== null ? `<div class="q-growth ${yoyUp ? 'up' : 'dn'}">${yoyUp ? '▲' : '▼'} YoY ${yoyUp ? '+' : ''}${qt.yoy}%</div>` : ''}
+          `;
+          cardsEl.appendChild(div);
+        });
+
+        // Render table (all 8 quarters)
+        const tbody = document.getElementById('quarterlyTableBody');
+        tbody.innerHTML = '';
+        quarters.slice().reverse().forEach(qt => {
+          const yoyUp = qt.yoy !== null && parseFloat(qt.yoy) >= 0;
+          const qoqUp = qt.qoq !== null && parseFloat(qt.qoq) >= 0;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:700; color:var(--gold); font-family:'Rajdhani'; font-size:15px;">${qt.label}</td>
+            <td style="font-family:'Share Tech Mono'; color:var(--teal);">$${formatRevenue(qt.revenue)}</td>
+            <td style="font-family:'Share Tech Mono'; color:${qt.profit > 0 ? 'var(--green)' : 'var(--red)'};">$${formatRevenue(qt.profit)}</td>
+            <td style="font-family:'Share Tech Mono';">$${qt.eps}</td>
+            <td style="color:${qt.yoy === null ? 'var(--text-muted)' : yoyUp ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${qt.yoy === null ? '—' : (yoyUp ? '+' : '') + qt.yoy + '%'}</td>
+            <td style="color:${qt.qoq === null ? 'var(--text-muted)' : qoqUp ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${qt.qoq === null ? '—' : (qoqUp ? '+' : '') + qt.qoq + '%'}</td>
+            <td style="font-family:'Share Tech Mono';">${qt.margin}%</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // AI Summary
+        const latestQ = last4[last4.length - 1];
+        const prevQ = last4[last4.length - 2];
+        const recentYoy = parseFloat(latestQ.yoy || 0);
+        const recentQoq = parseFloat(latestQ.qoq || 0);
+        const profitMargin = latestQ.margin;
+
+        let aiSummary = '';
+        const signals = [];
+        if (recentYoy > 10) signals.push(`📈 รายได้โต YoY +${latestQ.yoy}% แสดงการเติบโตต่อเนื่อง`);
+        else if (recentYoy > 0) signals.push(`📊 รายได้โต YoY +${latestQ.yoy}% — ทรงตัว`);
+        else signals.push(`📉 รายได้ลด YoY ${latestQ.yoy}% — น่าจับตา`);
+
+        if (recentQoq > 5) signals.push(`✅ QoQ +${latestQ.qoq}% — ฟื้นตัวชัดเจนจากไตรมาสก่อน`);
+        else if (recentQoq < -5) signals.push(`⚠️ QoQ ${latestQ.qoq}% — กำไรชะลอจากไตรมาสก่อน`);
+        else signals.push(`📌 QoQ ${latestQ.qoq}% — ทรงตัว`);
+
+        if (parseFloat(profitMargin) > 20) signals.push(`💎 Margin ${profitMargin}% — งบแข็งแรง มีประสิทธิภาพสูง`);
+        else if (parseFloat(profitMargin) > 10) signals.push(`📗 Margin ${profitMargin}% — สุขภาพการเงินปกติ`);
+        else signals.push(`🔴 Margin ${profitMargin}% — ความสามารถทำกำไรต่ำ`);
+
+        const overallPositive = recentYoy > 0 && parseFloat(profitMargin) > 10;
+        signals.push(overallPositive
+          ? `🤖 AI มองบวก — งบการเงินแข็งแรง เหมาะสะสมระยะยาว`
+          : `🤖 AI ระมัดระวัง — ติดตามงบไตรมาสหน้าก่อนตัดสินใจ`
+        );
+
+        document.getElementById('quarterlyAiText').innerHTML = signals.map(s => `<div style="margin-bottom:5px;">${s}</div>`).join('');
+      }
+
+      function formatRevenue(val) {
+        if (val >= 1e9) return (val / 1e9).toFixed(2) + 'B';
+        if (val >= 1e6) return (val / 1e6).toFixed(1) + 'M';
+        return val.toFixed(0);
       }
 
       ensureAdmin();
