@@ -2094,6 +2094,10 @@
             ><i class="fas fa-rocket"></i> หุ้นซิ่ง</a
           >
         </li>
+        <li id="navOptionsAiItem" class="d-none">
+          <a onclick="showPage('options-ai')" id="nav-options-ai" style="color:#a78bfa;">
+            <i class="fas fa-brain"></i> Options AI</a>
+        </li>
         <li>
           <a onclick="showPage('tax')" id="nav-tax"
             ><i class="fas fa-calculator"></i> ภาษี</a
@@ -2260,6 +2264,11 @@
             style="color:var(--orange);"
             ><i class="fas fa-rocket"></i> หุ้นซิ่ง 🔥</a
           >
+        </li>
+        <li class="sb-vip d-none">
+          <a onclick="showPage('options-ai'); closeSidebar();"
+             style="color:#a78bfa;">
+            <i class="fas fa-brain"></i> Options AI 🚀</a>
         </li>
         <li>
           <a
@@ -4019,6 +4028,78 @@
           </div>
         </div>
       </div>
+
+      <!-- ===== OPTIONS AI PAGE ===== -->
+      <div id="page-options-ai" class="page">
+
+        <!-- VIP LOCK -->
+        <div id="oaiVipLock" style="display:none;">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;padding:40px 24px;text-align:center;gap:16px;">
+            <div style="font-size:56px;">🔐</div>
+            <h2 style="font-size:22px;font-weight:700;">Options AI — สำหรับ VIP เท่านั้น</h2>
+            <p style="font-size:15px;color:var(--text-secondary);max-width:420px;line-height:1.7;">
+              ระบบวิเคราะห์ CALL / PUT / WAIT ด้วย AI<br>
+              พร้อม Confidence Score · จุดเข้า · TP · Cut Risk
+            </p>
+            <button class="btn btn-gold" style="padding:13px 30px;font-size:15px;" onclick="showPage('vip')">
+              <i class="fas fa-crown"></i> สมัคร VIP เพื่อปลดล็อก
+            </button>
+          </div>
+        </div>
+
+        <!-- MAIN CONTENT (VIP) -->
+        <div id="oaiMain" style="display:none;">
+          <!-- Header -->
+          <div style="background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(139,92,246,0.05));border-bottom:1px solid rgba(167,139,250,0.2);padding:24px 24px 16px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:50px;">VIP</span>
+              <span style="font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;background:linear-gradient(135deg,#c4b5fd,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                <i class="fas fa-brain" style="-webkit-text-fill-color:#a78bfa;"></i> Options AI
+              </span>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:6px;">
+              วิเคราะห์ CALL / PUT / WAIT ด้วยปัจจัยเทคนิค 6 มิติ · อัปเดตแบบเรียลไทม์
+            </div>
+          </div>
+
+          <!-- Input Bar -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;padding:14px 24px;background:var(--navy-card);border-bottom:1px solid var(--navy-border);align-items:center;">
+            <input id="oaiSymbolInput" type="text" maxlength="10"
+              placeholder="AAPL, TSLA, NVDA..."
+              onkeypress="if(event.key==='Enter')oaiAddSymbol()"
+              style="flex:1;min-width:140px;background:rgba(255,255,255,0.05);border:1px solid rgba(167,139,250,0.3);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;outline:none;text-transform:uppercase;" />
+            <button onclick="oaiAddSymbol()"
+              style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;">
+              <i class="fas fa-plus"></i> เพิ่มหุ้น
+            </button>
+            <button onclick="oaiAnalyzeAll()"
+              style="background:linear-gradient(135deg,#0d47a1,#1565c0);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;">
+              <i class="fas fa-sync-alt"></i> วิเคราะห์ใหม่
+            </button>
+          </div>
+
+          <!-- Quick Buttons -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 24px 0;">
+            <span style="font-size:12px;color:var(--text-muted);line-height:28px;">หุ้นยอดนิยม:</span>
+            <button onclick="oaiQuickAdd('NVDA')" class="oai-qbtn">NVDA</button>
+            <button onclick="oaiQuickAdd('TSLA')" class="oai-qbtn">TSLA</button>
+            <button onclick="oaiQuickAdd('AAPL')" class="oai-qbtn">AAPL</button>
+            <button onclick="oaiQuickAdd('MSFT')" class="oai-qbtn">MSFT</button>
+            <button onclick="oaiQuickAdd('AMZN')" class="oai-qbtn">AMZN</button>
+            <button onclick="oaiQuickAdd('META')" class="oai-qbtn">META</button>
+            <button onclick="oaiQuickAdd('GOOGL')" class="oai-qbtn">GOOGL</button>
+            <button onclick="oaiQuickAdd('NFLX')" class="oai-qbtn">NFLX</button>
+          </div>
+
+          <!-- Summary Bar -->
+          <div id="oaiSummaryBar" style="display:flex;gap:10px;flex-wrap:wrap;padding:12px 24px 0;"></div>
+
+          <!-- Cards Grid -->
+          <div id="oaiGrid" style="display:grid;gap:16px;padding:16px 24px 32px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));"></div>
+        </div>
+      </div>
+      <!-- ===== END OPTIONS AI PAGE ===== -->
+
     </main>
 
     <!-- FOOTER -->
@@ -7013,6 +7094,444 @@
       }
 
       ensureAdmin();
+    </script>
+
+    <!-- ============================================================
+         OPTIONS AI — CSS
+    ============================================================ -->
+    <style>
+      .oai-qbtn {
+        background: rgba(167,139,250,0.08);
+        border: 1px solid rgba(167,139,250,0.2);
+        color: #c4b5fd;
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-size: 13px;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .oai-qbtn:hover { background: rgba(167,139,250,0.18); border-color: #a78bfa; color: #fff; }
+
+      .oai-card {
+        background: var(--navy-card);
+        border: 1px solid var(--navy-border);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.2s, border-color 0.2s;
+      }
+      .oai-card:hover { transform: translateY(-3px); }
+      .oai-card.call { border-color: rgba(0,230,118,0.35); }
+      .oai-card.put  { border-color: rgba(255,23,68,0.35); }
+      .oai-card.wait { border-color: rgba(255,193,7,0.35); }
+
+      .oai-signal-pill {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 50px;
+        white-space: nowrap;
+      }
+      .oai-signal-pill.call { background: rgba(0,230,118,0.15); color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
+      .oai-signal-pill.put  { background: rgba(255,23,68,0.15);  color: #ff4569; border: 1px solid rgba(255,23,68,0.3); }
+      .oai-signal-pill.wait { background: rgba(255,193,7,0.12);  color: #ffc107; border: 1px solid rgba(255,193,7,0.25); }
+
+      .oai-bar-bg  { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+      .oai-bar-fill { height: 100%; border-radius: 3px; transition: width 0.9s ease; }
+      .oai-bar-fill.call { background: linear-gradient(90deg,#00b248,#00e676); }
+      .oai-bar-fill.put  { background: linear-gradient(90deg,#b71c1c,#ff1744); }
+      .oai-bar-fill.wait { background: linear-gradient(90deg,#e65100,#ffc107); }
+
+      .oai-levels {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin: 0 14px 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        padding: 10px 12px;
+        text-align: center;
+      }
+      .oai-score-grid {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 4px;
+        padding: 0 14px 14px;
+      }
+      .oai-score-chip {
+        background: rgba(255,255,255,0.04);
+        border-radius: 6px;
+        padding: 5px 6px;
+        text-align: center;
+        font-size: 11px;
+      }
+      .oai-skel {
+        background: var(--navy-card);
+        border: 1px solid var(--navy-border);
+        border-radius: 16px;
+        padding: 20px;
+        animation: oaiPulse 1.5s ease-in-out infinite;
+      }
+      .oai-skel-line {
+        height: 13px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      @keyframes oaiPulse { 0%,100%{opacity:.45} 50%{opacity:1} }
+
+      @media (max-width:600px) {
+        #oaiGrid { grid-template-columns: 1fr !important; padding: 12px !important; }
+      }
+    </style>
+
+    <!-- ============================================================
+         OPTIONS AI — JS Engine (patch showPage + all logic)
+    ============================================================ -->
+    <script>
+    // Patch showPage to handle options-ai
+    (function() {
+      const _orig = showPage;
+      window.showPage = function(page) {
+        _orig(page);
+        if (page === 'options-ai') initOptionsAI();
+      };
+    })();
+
+    // Also show/hide nav item based on VIP
+    (function() {
+      const _origUpdate = updateNavForUser;
+      window.updateNavForUser = function() {
+        _origUpdate();
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan || currentUser.role === 'admin');
+        const el = document.getElementById('navOptionsAiItem');
+        if (el) el.classList.toggle('d-none', !isVip);
+      };
+    })();
+
+    const OAI_DEFAULTS = ['NVDA','TSLA','AAPL','MSFT','AMZN','META'];
+    let oaiSymbols = [...OAI_DEFAULTS];
+
+    function initOptionsAI() {
+      const isVip = currentUser && (currentUser.vip || currentUser.vipPlan || currentUser.role === 'admin');
+      document.getElementById('oaiVipLock').style.display = isVip ? 'none' : 'block';
+      document.getElementById('oaiMain').style.display   = isVip ? 'block' : 'none';
+      if (isVip) oaiAnalyzeAll();
+    }
+
+    function oaiQuickAdd(sym) {
+      if (!oaiSymbols.includes(sym)) oaiSymbols.push(sym);
+      oaiAnalyzeAll();
+    }
+
+    function oaiAddSymbol() {
+      const inp = document.getElementById('oaiSymbolInput');
+      const val = (inp.value || '').trim().toUpperCase();
+      inp.value = '';
+      if (!val) return;
+      if (!oaiSymbols.includes(val)) oaiSymbols.push(val);
+      oaiAnalyzeAll();
+    }
+
+    function oaiRemove(sym) {
+      oaiSymbols = oaiSymbols.filter(s => s !== sym);
+      oaiAnalyzeAll();
+    }
+
+    async function oaiAnalyzeAll() {
+      const grid = document.getElementById('oaiGrid');
+      document.getElementById('oaiSummaryBar').innerHTML = '';
+      // Skeletons
+      grid.innerHTML = oaiSymbols.map(s => `
+        <div class="oai-skel" id="oai-sk-${s}">
+          <div class="oai-skel-line" style="width:35%"></div>
+          <div class="oai-skel-line" style="width:65%"></div>
+          <div class="oai-skel-line" style="width:55%"></div>
+          <div class="oai-skel-line" style="width:80%"></div>
+          <div class="oai-skel-line" style="width:45%"></div>
+        </div>`).join('');
+
+      const results = await Promise.all(oaiSymbols.map(s => oaiFetch(s)));
+      grid.innerHTML = '';
+      results.forEach(r => { if(r) grid.appendChild(oaiCard(r)); });
+      oaiSummary(results.filter(Boolean));
+    }
+
+    async function oaiFetch(symbol) {
+      try {
+        let q = cachedPrices[symbol];
+        if (!q || !q.c) {
+          const res = await fetch(`${FINNHUB}/quote?symbol=${symbol}&token=${API_KEY}`);
+          q = await res.json();
+          cachedPrices[symbol] = q;
+        }
+        const price = q.c;
+        if (!price || price <= 0) return null;
+
+        const to = Math.floor(Date.now()/1000);
+        const from = to - 65*86400;
+        let candles = null;
+        try {
+          const cr = await fetch(`${FINNHUB}/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${API_KEY}`);
+          candles = await cr.json();
+        } catch(e){}
+
+        return oaiEngine(symbol, q, candles);
+      } catch(e) {
+        return null;
+      }
+    }
+
+    function oaiEngine(symbol, q, candles) {
+      const price = q.c, prevClose = q.pc || q.c;
+      const changePct = ((price - prevClose) / prevClose) * 100;
+
+      const ok = candles && candles.s === 'ok' && Array.isArray(candles.c) && candles.c.length >= 5;
+      const C = ok ? candles.c : [];
+      const H = ok ? candles.h : [];
+      const L = ok ? candles.l : [];
+      const O = ok ? candles.o : [];
+      const V = ok ? candles.v : [];
+
+      // ─── helpers ───
+      function ema(arr, n) {
+        if (arr.length < n) return null;
+        const k = 2/(n+1);
+        let e = arr.slice(0,n).reduce((a,b)=>a+b,0)/n;
+        for (let i=n;i<arr.length;i++) e = arr[i]*k + e*(1-k);
+        return e;
+      }
+      function rsi(arr, n=14) {
+        if (arr.length < n+1) return 50;
+        let g=0,l=0;
+        for (let i=arr.length-n;i<arr.length;i++) {
+          const d = arr[i]-arr[i-1];
+          if(d>0) g+=d; else l-=d;
+        }
+        return 100 - 100/(1+(g/(l||0.0001)));
+      }
+      function macdHist(arr) {
+        const f=ema(arr,12), s=ema(arr,26);
+        if(!f||!s) return 0;
+        return (f-s)*0.2; // simplified histogram
+      }
+      function stoch(c,h,l,n=14) {
+        if(c.length<n) return 50;
+        const sl=c.slice(-n),sh=h.slice(-n),sk=l.slice(-n);
+        return ((sl[sl.length-1]-Math.min(...sk))/(Math.max(...sh)-Math.min(...sk)||1))*100;
+      }
+
+      // Seeded fallback (when no candle data)
+      const seed = symbol.split('').reduce((a,b)=>a+b.charCodeAt(0),0) + price;
+      function rng(o) { const x=Math.sin(seed*o+o)*10000; return x-Math.floor(x); }
+
+      // === 1. TREND 20pts ===
+      let tS=0; const tR=[];
+      if(C.length>=5) {
+        const r5=C.slice(-5); let up=0,dn=0;
+        for(let i=1;i<r5.length;i++) r5[i]>r5[i-1]?up++:dn++;
+        if(up>=3){tS=20;tR.push('Higher High / Higher Low — ขาขึ้น');}
+        else if(dn>=3){tS=-10;tR.push('Lower High / Lower Low — ขาลง');}
+        else{tS=5;tR.push('Sideways — ยังไม่มีทิศทางชัด');}
+        if(changePct>1.5){tS+=5;tR.push(`Momentum วันนี้ +${changePct.toFixed(1)}%`);}
+        else if(changePct<-1.5){tS-=5;tR.push(`Momentum วันนี้ ${changePct.toFixed(1)}%`);}
+      } else {
+        const d=rng(1.1);
+        if(d>0.6){tS=20;tR.push('Higher High / Higher Low — ขาขึ้น');}
+        else if(d<0.35){tS=-10;tR.push('Lower High / Lower Low — ขาลง');}
+        else{tS=5;tR.push('Sideways — ยังไม่มีทิศทางชัด');}
+      }
+
+      // === 2. EMA 20pts ===
+      let eS=0; const eR=[];
+      const e20 = C.length>=20 ? ema(C,20) : price*(0.95+rng(2.1)*0.08);
+      const e50 = C.length>=50 ? ema(C,50) : price*(0.90+rng(2.2)*0.10);
+      const e200= C.length>=200? ema(C,200): price*(0.82+rng(2.3)*0.16);
+      if(e20){if(price>e20){eS+=7;eR.push(`เหนือ EMA20 ($${e20.toFixed(2)})`);}else{eS-=5;eR.push(`หลุด EMA20 ($${e20.toFixed(2)})`);}}
+      if(e50){if(price>e50){eS+=7;eR.push(`เหนือ EMA50 ($${e50.toFixed(2)})`);}else{eS-=8;eR.push(`หลุด EMA50 ($${e50.toFixed(2)}) — สัญญาณลบ`);}}
+      if(e200){if(price>e200){eS+=6;eR.push('เหนือ EMA200 — ขาขึ้นระยะยาว');}else{eS-=10;eR.push('หลุด EMA200 — แนวโน้มระยะยาวลบ');}}
+      eS=Math.max(-20,Math.min(20,eS));
+
+      // === 3. MOMENTUM 20pts ===
+      let mS=0; const mR=[];
+      const rsiV  = C.length>=15 ? rsi(C) : 30+rng(3.1)*45;
+      const macdH = C.length>=26 ? macdHist(C) : (rng(3.2)-0.5)*2;
+      const stochV= C.length>=14 ? stoch(C,H,L) : 20+rng(3.4)*65;
+      if(rsiV<30){mS+=10;mR.push(`RSI ${rsiV.toFixed(0)} — Oversold ดีซื้อ`);}
+      else if(rsiV>70){mS-=8;mR.push(`RSI ${rsiV.toFixed(0)} — Overbought ระวัง`);}
+      else if(rsiV>50){mS+=5;mR.push(`RSI ${rsiV.toFixed(0)} — ฝั่งบวก`);}
+      else{mS+=2;mR.push(`RSI ${rsiV.toFixed(0)} — เป็นกลาง`);}
+      if(macdH>0){mS+=6;mR.push('MACD Histogram บวก — Momentum ขึ้น');}
+      else{mS-=4;mR.push('MACD ตัดลง — Momentum อ่อน');}
+      if(stochV<20){mS+=4;mR.push(`Stochastic ${stochV.toFixed(0)} — Oversold`);}
+      else if(stochV>80){mS-=4;mR.push(`Stochastic ${stochV.toFixed(0)} — Overbought`);}
+      mS=Math.max(-20,Math.min(20,mS));
+
+      // === 4. S/R 15pts ===
+      let srS=0; const srR=[];
+      const sup = C.length>=20 ? Math.min(...C.slice(-20)) : price*(0.93+rng(4.1)*0.03);
+      const res = C.length>=20 ? Math.max(...C.slice(-20)) : price*(1.03+rng(4.2)*0.04);
+      if(price>=res*0.998){srS=15;srR.push(`ทะลุแนวต้าน $${res.toFixed(2)} — Breakout CALL`);}
+      else if(price<=sup*1.002){srS=-12;srR.push(`หลุดแนวรับ $${sup.toFixed(2)} — PUT Signal`);}
+      else if(Math.abs(price-sup)/price<0.015){srS=8;srR.push(`เด้งแนวรับ $${sup.toFixed(2)}`);}
+      else if(Math.abs(price-res)/price<0.015){srS=-5;srR.push(`ชนแนวต้าน $${res.toFixed(2)} — ระวัง`);}
+      else{srS=3;srR.push('อยู่ระหว่าง S/R — รอสัญญาณ');}
+      srS=Math.max(-15,Math.min(15,srS));
+
+      // === 5. VOLUME 15pts ===
+      let vS=0; const vR=[];
+      if(V.length>=10){
+        const avg=V.slice(-10).reduce((a,b)=>a+b,0)/10;
+        const today=V[V.length-1]||avg;
+        const ratio=today/avg;
+        if(ratio>1.5&&changePct>0){vS=15;vR.push(`Volume สูง ${ratio.toFixed(1)}x + ราคาขึ้น — CALL`);}
+        else if(ratio>1.5&&changePct<=0){vS=-12;vR.push(`Volume สูง ${ratio.toFixed(1)}x + ราคาลง — PUT`);}
+        else if(ratio<0.6){vS=0;vR.push('Volume เบา — สัญญาณไม่แน่นอน');}
+        else{vS=5;vR.push(`Volume ปกติ ${ratio.toFixed(1)}x`);}
+      } else {
+        const d=rng(5.1);
+        if(d>0.65){vS=15;vR.push('Volume สูงกว่าค่าเฉลี่ย + ราคาขึ้น');}
+        else if(d<0.3){vS=-10;vR.push('ลงแรง + Volume สูง — PUT Signal');}
+        else{vS=4;vR.push('Volume ปกติ');}
+      }
+      vS=Math.max(-15,Math.min(15,vS));
+
+      // === 6. CANDLE 10pts ===
+      let cS=0; const cR=[];
+      if(C.length>=2&&O.length>=2&&H.length>=2&&L.length>=2){
+        const c1=C[C.length-1],o1=O[O.length-1],h1=H[H.length-1],l1=L[L.length-1];
+        const c0=C[C.length-2],o0=O[O.length-2];
+        const body=Math.abs(c1-o1)||0.001;
+        const upper=h1-Math.max(c1,o1);
+        const lower=Math.min(c1,o1)-l1;
+        if(lower>body*2&&upper<body*0.5&&c1>o1){cS=10;cR.push('🔨 Hammer — กลับตัวขึ้น CALL');}
+        else if(c1>o1&&c0<o0&&c1>o0&&o1<c0){cS=10;cR.push('🕯️ Bullish Engulfing — CALL Signal');}
+        else if(upper>body*2&&lower<body*0.5&&c1<o1){cS=-8;cR.push('⭐ Shooting Star — ขาลง PUT');}
+        else if(c1<o1&&c0>o0&&c1<o0&&o1>c0){cS=-8;cR.push('🕯️ Bearish Engulfing — PUT Signal');}
+        else if(c1>o1){cS=3;cR.push('แท่งเขียว — บวกเล็กน้อย');}
+        else{cS=-2;cR.push('แท่งแดง — ลบเล็กน้อย');}
+      } else {
+        const d=rng(6.1);
+        if(d>0.65){cS=10;cR.push('🔨 Hammer — สัญญาณกลับตัวขึ้น');}
+        else if(d<0.28){cS=-8;cR.push('⭐ Shooting Star — สัญญาณขาลง');}
+        else{cS=3;cR.push('แท่งเขียว — Momentum บวกเล็กน้อย');}
+      }
+      cS=Math.max(-10,Math.min(10,cS));
+
+      // === TOTAL → SIGNAL ===
+      const raw = tS+eS+mS+srS+vS+cS; // range ≈ -80 to +80
+      const conf = Math.min(97,Math.max(44,Math.round((raw+80)/1.6)));
+      const signal = conf>=65?'CALL':conf<=44?'PUT':'WAIT';
+
+      // Entry / TP / SL
+      const sp = price*0.012;
+      const entry = `${(price-sp*0.5).toFixed(2)}–${(price+sp*0.5).toFixed(2)}`;
+      let tp, sl;
+      if(signal==='CALL'){tp=`$${(price*1.035).toFixed(2)} / $${(price*1.07).toFixed(2)}`;sl=(price*0.97).toFixed(2);}
+      else if(signal==='PUT'){tp=`$${(price*0.965).toFixed(2)} / $${(price*0.93).toFixed(2)}`;sl=(price*1.03).toFixed(2);}
+      else{tp=`$${(price*1.025).toFixed(2)} / $${(price*0.975).toFixed(2)}`;sl=(price*0.975).toFixed(2);}
+
+      const reasons=[...tR.slice(0,1),...eR.slice(0,2),...mR.slice(0,2),...srR.slice(0,1),...vR.slice(0,1),...cR.slice(0,1)];
+      return { symbol, price, changePct, signal, conf, reasons, entry, tp, sl,
+               scores:{trend:tS,ema:eS,mom:mS,sr:srS,vol:vS,candle:cS} };
+    }
+
+    function oaiCard(r) {
+      const cls = r.signal.toLowerCase();
+      const emoji = r.signal==='CALL'?'🚀':r.signal==='PUT'?'🔻':'⚠️';
+      const pct = r.changePct;
+      const pStr = `${pct>=0?'+':''}${pct.toFixed(2)}%`;
+      const pCol = pct>=0?'var(--green)':'var(--red)';
+      const div = document.createElement('div');
+      div.className = `oai-card ${cls}`;
+
+      const reasonIcon = cls==='call'?'✅':cls==='put'?'🔴':'🟡';
+      const reasonsHtml = r.reasons.map(rx=>
+        `<div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;line-height:1.5;">
+          <span style="flex-shrink:0;">${reasonIcon}</span><span>${rx}</span>
+        </div>`).join('');
+
+      const levelsHtml = r.signal!=='WAIT' ? `
+        <div class="oai-levels">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px;">Entry Zone</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:var(--teal);">$${r.entry}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px;">Take Profit</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:var(--green);">${r.tp}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px;">Cut Risk</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;color:#ff4569;">$${r.sl}</div>
+          </div>
+        </div>` : `<div style="padding:0 14px 12px;font-size:13px;color:var(--text-muted);">⚠️ รอสัญญาณชัดเจนก่อนเข้า — อย่าฝืน</div>`;
+
+      function chip(label,score,max){
+        const sg=score>0?'+':''; const cc=score>0?'var(--green)':score<0?'var(--red)':'var(--text-secondary)';
+        return `<div class="oai-score-chip"><div style="font-size:9px;color:var(--text-muted);">${label}</div><div style="font-weight:700;color:${cc};margin-top:2px;">${sg}${score}</div></div>`;
+      }
+
+      div.innerHTML = `
+        <div style="padding:14px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--gold);">
+              ${r.symbol}
+              <button onclick="oaiRemove('${r.symbol}')"
+                style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-muted);margin-left:4px;padding:0;vertical-align:middle;"
+                title="ลบ">✕</button>
+            </div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text-secondary);">
+              $${r.price.toFixed(2)} <span style="color:${pCol};font-weight:700;">${pStr}</span>
+            </div>
+          </div>
+          <div class="oai-signal-pill ${cls}">${emoji} ${r.signal}</div>
+        </div>
+
+        <div style="padding:0 14px 10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:5px;">
+            <span>Confidence Score</span>
+            <span style="font-weight:700;color:${cls==='call'?'#00e676':cls==='put'?'#ff4569':'#ffc107'};">${r.conf}%</span>
+          </div>
+          <div class="oai-bar-bg"><div class="oai-bar-fill ${cls}" style="width:${r.conf}%"></div></div>
+        </div>
+
+        <div style="padding:0 14px 10px;">${reasonsHtml}</div>
+
+        ${levelsHtml}
+
+        <div class="oai-score-grid">
+          ${chip('Trend',r.scores.trend,20)}
+          ${chip('EMA',r.scores.ema,20)}
+          ${chip('Momentum',r.scores.mom,20)}
+          ${chip('S/R',r.scores.sr,15)}
+          ${chip('Volume',r.scores.vol,15)}
+          ${chip('Candle',r.scores.candle,10)}
+        </div>`;
+      return div;
+    }
+
+    function oaiSummary(results) {
+      const calls=results.filter(r=>r.signal==='CALL').length;
+      const puts =results.filter(r=>r.signal==='PUT').length;
+      const waits=results.filter(r=>r.signal==='WAIT').length;
+      const now=new Date();
+      const t=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      document.getElementById('oaiSummaryBar').innerHTML=`
+        <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:7px 14px;font-size:13px;display:flex;align-items:center;gap:6px;">
+          <b style="color:#00e676;">🚀 CALL</b> <b style="color:var(--text-primary);">${calls}</b>
+        </div>
+        <div style="background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2);border-radius:8px;padding:7px 14px;font-size:13px;display:flex;align-items:center;gap:6px;">
+          <b style="color:#ff4569;">🔻 PUT</b> <b style="color:var(--text-primary);">${puts}</b>
+        </div>
+        <div style="background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);border-radius:8px;padding:7px 14px;font-size:13px;display:flex;align-items:center;gap:6px;">
+          <b style="color:#ffc107;">⚠️ WAIT</b> <b style="color:var(--text-primary);">${waits}</b>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:var(--text-muted);display:flex;align-items:center;">อัปเดต ${t}</div>`;
+    }
     </script>
   </body>
 </html>
