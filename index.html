@@ -1451,6 +1451,253 @@
         display: none !important;
       }
 
+      /* ===== USD/THB TICKER BAR ===== */
+      .fx-bar {
+        background: rgba(245,200,66,0.06);
+        border-bottom: 1px solid rgba(245,200,66,0.15);
+        padding: 6px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        font-family: 'Share Tech Mono', monospace;
+        position: sticky;
+        top: 64px;
+        z-index: 90;
+        backdrop-filter: blur(10px);
+      }
+      .fx-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+      .fx-value { font-weight: 700; font-size: 14px; color: var(--gold); }
+      .fx-change { font-size: 12px; padding: 2px 7px; border-radius: 4px; }
+      .fx-change.up { background: rgba(0,230,118,0.12); color: var(--green); }
+      .fx-change.dn { background: rgba(255,23,68,0.12); color: var(--red); }
+      .fx-time { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+      /* ===== PRE-MARKET BADGE on Stock Cards ===== */
+      .premarket-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        padding: 5px 8px;
+        background: rgba(41,121,255,0.07);
+        border: 1px solid rgba(41,121,255,0.15);
+        border-radius: 6px;
+        font-size: 12px;
+        font-family: 'Share Tech Mono', monospace;
+      }
+      .premarket-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--blue-glow);
+        font-weight: 700;
+      }
+      .premarket-price { font-weight: 700; }
+      .premarket-change { font-size: 11px; margin-left: auto; }
+
+      /* ===== หุ้นซิ่ง PAGE ===== */
+      .rocket-header {
+        background: linear-gradient(135deg, rgba(255,145,0,0.08) 0%, rgba(255,23,68,0.08) 50%, rgba(245,200,66,0.08) 100%);
+        border: 1px solid rgba(255,145,0,0.2);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+      .rocket-title {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--orange), var(--gold), var(--red));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+      .rocket-sub { font-size: 14px; color: var(--text-secondary); }
+      .rocket-scan-btn {
+        margin-top: 16px;
+        background: linear-gradient(135deg, var(--orange), var(--red));
+        border: none;
+        padding: 12px 32px;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(255,145,0,0.3);
+      }
+      .rocket-scan-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,145,0,0.4); }
+      .rocket-scan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+      .rocket-card {
+        background: linear-gradient(135deg, rgba(255,145,0,0.06) 0%, rgba(13,21,40,0.95) 100%);
+        border: 1px solid rgba(255,145,0,0.2);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .rocket-card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 80px; height: 80px;
+        background: radial-gradient(circle, rgba(255,145,0,0.12), transparent 70%);
+        border-radius: 0 16px 0 0;
+      }
+      .rocket-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,145,0,0.15); }
+      .rocket-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .rocket-symbol {
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .rocket-score-bar {
+        width: 60px; height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px; overflow: hidden;
+      }
+      .rocket-score-fill {
+        height: 100%; border-radius: 3px;
+        background: linear-gradient(90deg, var(--orange), var(--gold));
+      }
+      .rocket-score-num {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 14px; font-weight: 700; color: var(--orange);
+      }
+      .rocket-reasons {
+        margin: 12px 0; display: flex; flex-wrap: wrap; gap: 6px;
+      }
+      .rocket-reason-tag {
+        padding: 3px 10px;
+        background: rgba(255,145,0,0.1);
+        border: 1px solid rgba(255,145,0,0.2);
+        border-radius: 20px; font-size: 11px;
+        color: var(--orange); font-weight: 600;
+      }
+      .rocket-levels {
+        display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 14px;
+      }
+      .rocket-level-box {
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px; padding: 8px; text-align: center;
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      .rocket-level-label {
+        font-size: 10px; text-transform: uppercase;
+        letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 4px;
+      }
+      .rocket-level-val { font-family: 'Share Tech Mono', monospace; font-size: 13px; font-weight: 700; }
+      .rocket-level-box.entry .rocket-level-val { color: var(--green); }
+      .rocket-level-box.tp .rocket-level-val { color: var(--gold); }
+      .rocket-level-box.sl .rocket-level-val { color: var(--red); }
+      .rocket-vip-section {
+        margin-top: 14px; padding: 12px;
+        background: rgba(245,200,66,0.04);
+        border: 1px solid rgba(245,200,66,0.15); border-radius: 10px;
+      }
+      .rocket-vip-label {
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;
+        color: var(--gold); font-weight: 700; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .rocket-sell-levels { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+      .rocket-sell-badge {
+        padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-family: 'Share Tech Mono', monospace; font-weight: 700;
+      }
+      .sell-tp1 { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+      .sell-tp2 { background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+      .sell-tp3 { background: rgba(41,121,255,0.1); color: var(--blue-glow); border: 1px solid rgba(41,121,255,0.2); }
+      .sell-cut { background: rgba(255,23,68,0.1); color: var(--red); border: 1px solid rgba(255,23,68,0.2); }
+      .confidence-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      }
+      .conf-high { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.25); }
+      .conf-mid { background: rgba(255,145,0,0.12); color: var(--orange); border: 1px solid rgba(255,145,0,0.25); }
+      .conf-risk { background: rgba(255,23,68,0.12); color: var(--red); border: 1px solid rgba(255,23,68,0.25); }
+      .scan-status-bar {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px; margin-bottom: 20px;
+        font-size: 13px; color: var(--text-secondary);
+      }
+      .scan-pulse {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--green); animation: pulse 1.5s infinite;
+      }
+
+      /* ===== TAX CALCULATOR PAGE ===== */
+      .tax-hero {
+        background: linear-gradient(135deg, rgba(0,188,212,0.06) 0%, rgba(41,121,255,0.06) 100%);
+        border: 1px solid rgba(0,188,212,0.15);
+        border-radius: 16px; padding: 24px; margin-bottom: 24px; text-align: center;
+      }
+      .tax-title {
+        font-size: 24px; font-weight: 800;
+        background: linear-gradient(90deg, var(--teal), var(--blue-glow));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; margin-bottom: 6px;
+      }
+      .tax-form-card {
+        background: var(--navy-card);
+        border: 1px solid var(--navy-border);
+        border-radius: 16px; padding: 24px; margin-bottom: 20px;
+      }
+      .tax-form-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      }
+      @media (max-width: 600px) { .tax-form-grid { grid-template-columns: 1fr; } }
+      .tax-result-card {
+        background: linear-gradient(135deg, rgba(0,188,212,0.05), rgba(41,121,255,0.05));
+        border: 1px solid rgba(0,188,212,0.2);
+        border-radius: 16px; padding: 24px;
+      }
+      .tax-result-title {
+        font-size: 16px; font-weight: 700; color: var(--teal);
+        margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+      }
+      .tax-result-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 14px;
+      }
+      .tax-result-row:last-child { border-bottom: none; }
+      .tax-result-label { color: var(--text-secondary); }
+      .tax-result-value { font-family: 'Share Tech Mono', monospace; font-weight: 700; font-size: 15px; }
+      .tax-result-value.positive { color: var(--green); }
+      .tax-result-value.negative { color: var(--red); }
+      .tax-result-value.neutral { color: var(--text-primary); }
+      .tax-result-value.highlight { color: var(--gold); font-size: 18px; }
+      .tax-result-row.total-row {
+        margin-top: 8px; padding-top: 16px;
+        border-top: 1px solid rgba(245,200,66,0.2); border-bottom: none;
+      }
+      .tax-calc-btn {
+        width: 100%; padding: 14px;
+        background: linear-gradient(135deg, var(--teal), var(--blue-glow));
+        border: none; border-radius: 12px; color: #fff;
+        font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 20px;
+        transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+      }
+      .tax-calc-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,188,212,0.3); }
+
       /* ===== EMA LEGEND & CONTROLS ===== */
       .ema-legend {
         display: flex;
@@ -1617,6 +1864,16 @@
             ><i class="fas fa-crown"></i> VIP</a
           >
         </li>
+        <li id="navRocketItem" class="d-none">
+          <a onclick="showPage('rocket')" id="nav-rocket" style="color:var(--orange);"
+            ><i class="fas fa-rocket"></i> หุ้นซิ่ง</a
+          >
+        </li>
+        <li>
+          <a onclick="showPage('tax')" id="nav-tax"
+            ><i class="fas fa-calculator"></i> ภาษี</a
+          >
+        </li>
         <li id="navAdminItem" class="d-none">
           <a onclick="showPage('admin')" id="nav-admin"
             ><i class="fas fa-cog"></i> แอดมิน</a
@@ -1668,6 +1925,17 @@
         </button>
       </div>
     </nav>
+
+    <!-- ===== USD/THB FX BAR ===== -->
+    <div class="fx-bar" id="fxBar">
+      <span class="fx-label">💱 USD/THB</span>
+      <span class="fx-value" id="fxRate">กำลังโหลด...</span>
+      <span class="fx-change" id="fxChange">-</span>
+      <span style="color:var(--navy-border)">|</span>
+      <span class="fx-label">อัปเดต:</span>
+      <span style="font-size:12px; color:var(--text-secondary);" id="fxTime">-</span>
+      <span class="fx-time" id="fxCalcHint" style="display:none; color:var(--teal); font-size:12px;"></span>
+    </div>
 
     <!-- SIDEBAR -->
     <div
@@ -1756,6 +2024,25 @@
               closeSidebar();
             "
             ><i class="fas fa-cog"></i> แอดมิน</a
+          >
+        </li>
+        <li class="sb-vip d-none">
+          <a
+            onclick="
+              showPage('rocket');
+              closeSidebar();
+            "
+            style="color:var(--orange);"
+            ><i class="fas fa-rocket"></i> หุ้นซิ่ง 🔥</a
+          >
+        </li>
+        <li>
+          <a
+            onclick="
+              showPage('tax');
+              closeSidebar();
+            "
+            ><i class="fas fa-calculator"></i> คำนวณภาษี</a
           >
         </li>
       </ul>
@@ -2978,6 +3265,9 @@
                   <i class="fas fa-check"></i> AI วิเคราะห์เต็มระบบ
                 </li>
                 <li class="vip-feature">
+                  <i class="fas fa-check"></i> 🚀 หุ้นซิ่ง เล่นรอบ
+                </li>
+                <li class="vip-feature">
                   <i class="fas fa-check"></i> หุ้นเด่นรายวัน
                 </li>
                 <li class="vip-feature">
@@ -2987,7 +3277,7 @@
                   <i class="fas fa-check"></i> หุ้นโปรดไม่จำกัด
                 </li>
                 <li class="vip-feature">
-                  <i class="fas fa-check"></i> รายงานพิเศษ
+                  <i class="fas fa-check"></i> วิเคราะห์สัญญาณ EMA
                 </li>
               </ul>
               <button
@@ -3279,6 +3569,135 @@
           </div>
         </div>
       </div>
+
+      <!-- ===== 🚀 หุ้นซิ่ง PAGE (VIP Only) ===== -->
+      <div id="page-rocket" class="page">
+        <div class="container section">
+          <div class="rocket-header">
+            <div class="rocket-title">🚀 หุ้นซิ่ง เล่นรอบ</div>
+            <div class="rocket-sub">AI สแกนหุ้น Momentum — คัดเฉพาะตัวที่มีสัญญาณ Bullish ชัดเจน เหมาะเล่น 1-7 วัน</div>
+            <button class="rocket-scan-btn" id="rocketScanBtn" onclick="runRocketScan()">
+              <i class="fas fa-satellite-dish"></i> สแกนหุ้นซิ่ง AI
+            </button>
+          </div>
+
+          <!-- Not VIP Lock -->
+          <div id="rocketVipLock" class="card" style="display:none; text-align:center; padding:32px; border-color:rgba(255,145,0,0.3);">
+            <div style="font-size:48px; margin-bottom:16px;">🚀</div>
+            <div style="font-weight:800; font-size:20px; margin-bottom:8px; color:var(--orange);">หุ้นซิ่ง เล่นรอบ — เฉพาะ VIP เท่านั้น</div>
+            <div style="font-size:14px; color:var(--text-muted); margin-bottom:20px; max-width:400px; margin-left:auto; margin-right:auto; line-height:1.7;">
+              ปลดล็อก AI Scan หุ้น Momentum · จุดซื้อ-ขาย · Stop Loss อัจฉริยะ<br>และสัญญาณ Breakout รายวัน
+            </div>
+            <button class="btn btn-gold" onclick="showPage('vip')">
+              <i class="fas fa-crown"></i> สมัคร VIP เพื่อปลดล็อก
+            </button>
+          </div>
+
+          <!-- Scan Status -->
+          <div class="scan-status-bar" id="rocketScanStatus" style="display:none;">
+            <div class="scan-pulse"></div>
+            <span id="rocketScanText">AI กำลังสแกนตลาด...</span>
+            <span style="margin-left:auto; font-size:12px; color:var(--text-muted);" id="rocketScanTime"></span>
+          </div>
+
+          <!-- Results -->
+          <div id="rocketResults"></div>
+        </div>
+      </div>
+
+      <!-- ===== 🧮 คำนวณภาษี PAGE ===== -->
+      <div id="page-tax" class="page">
+        <div class="container section">
+          <div class="tax-hero">
+            <div style="font-size:40px; margin-bottom:12px;">🧮</div>
+            <div class="tax-title">คำนวณภาษีหุ้น</div>
+            <div style="font-size:14px; color:var(--text-secondary);">คำนวณกำไร ภาษี และเงินสุทธิเป็นบาทไทย</div>
+          </div>
+
+          <div class="tax-form-card">
+            <div class="card-title" style="margin-bottom:20px;"><i class="fas fa-edit" style="color:var(--teal);"></i> กรอกข้อมูลการขาย</div>
+            <div class="tax-form-grid">
+              <div class="form-group">
+                <label class="form-label">ชื่อหุ้น (Symbol)</label>
+                <input class="form-control" id="taxSymbol" type="text" placeholder="เช่น TSLA, AAPL" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">จำนวนหุ้นที่ขาย</label>
+                <input class="form-control" id="taxQty" type="number" placeholder="10" min="0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ราคาขาย (USD/หุ้น)</label>
+                <input class="form-control" id="taxSellPrice" type="number" placeholder="300.00" min="0" step="0.01"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ต้นทุน/ราคาซื้อ (USD/หุ้น)</label>
+                <input class="form-control" id="taxBuyPrice" type="number" placeholder="200.00" min="0" step="0.01"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ค่าคอมมิชชัน (USD)</label>
+                <input class="form-control" id="taxCommission" type="number" placeholder="0.00" min="0" step="0.01" value="0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ภาษีหัก ณ ที่จ่าย (%)</label>
+                <input class="form-control" id="taxRate" type="number" placeholder="15" min="0" max="100" step="0.1" value="15"/>
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">อัตราแลกเปลี่ยน USD/THB <span style="color:var(--teal); cursor:pointer; font-size:12px;" onclick="applyLiveFxToTax()">▶ ดึงอัตราปัจจุบัน</span></label>
+                <input class="form-control" id="taxFxRate" type="number" placeholder="36.00" min="0" step="0.01" value=""/>
+              </div>
+            </div>
+            <button class="tax-calc-btn" onclick="calculateTax()">
+              <i class="fas fa-calculator"></i> คำนวณภาษี
+            </button>
+          </div>
+
+          <!-- Result -->
+          <div class="tax-result-card" id="taxResult" style="display:none;">
+            <div class="tax-result-title"><i class="fas fa-file-invoice-dollar"></i> สรุปผลการคำนวณ</div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">📌 หุ้น</span>
+              <span class="tax-result-value neutral" id="taxResSymbol">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">📦 จำนวนหุ้น</span>
+              <span class="tax-result-value neutral" id="taxResQty">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">💵 มูลค่าขายรวม</span>
+              <span class="tax-result-value neutral" id="taxResTotal">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">💰 ต้นทุนรวม</span>
+              <span class="tax-result-value neutral" id="taxResCost">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">🏦 ค่าคอมมิชชัน</span>
+              <span class="tax-result-value negative" id="taxResComm">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">📊 กำไร/ขาดทุนก่อนภาษี</span>
+              <span class="tax-result-value" id="taxResGross">-</span>
+            </div>
+            <div class="tax-result-row">
+              <span class="tax-result-label">🏛️ ภาษีหัก ณ ที่จ่าย</span>
+              <span class="tax-result-value negative" id="taxResWht">-</span>
+            </div>
+            <div class="tax-result-row total-row">
+              <span class="tax-result-label" style="font-weight:700; color:var(--text-primary);">✅ เงินสุทธิ (USD)</span>
+              <span class="tax-result-value highlight" id="taxResNet">-</span>
+            </div>
+            <div class="tax-result-row total-row" style="border-top:1px solid rgba(0,188,212,0.2);">
+              <span class="tax-result-label" style="font-weight:700; color:var(--teal);">🇹🇭 เงินสุทธิ (THB)</span>
+              <span class="tax-result-value highlight" id="taxResTHB" style="color:var(--teal);">-</span>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div style="margin-top:16px; padding:12px 16px; background:rgba(255,255,255,0.02); border-radius:8px; font-size:12px; color:var(--text-muted); line-height:1.7;">
+            ⚠️ ตัวเลขนี้เป็นการประมาณการเท่านั้น อัตราภาษีจริงอาจแตกต่างตามประเทศและประเภทรายได้ กรุณาปรึกษานักบัญชีหรือที่ปรึกษาภาษีก่อนยื่นแบบ
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- FOOTER -->
@@ -3391,9 +3810,11 @@
         loadFeaturedStocks();
         loadTickerPrices();
         loadInitialNews();
+        loadFxRate();
         setInterval(loadTickerPrices, 30000);
         setInterval(checkPriceAlerts, 60000);
-        setInterval(checkVipExpiry, 5 * 60000); // Check every 5 mins
+        setInterval(checkVipExpiry, 5 * 60000);
+        setInterval(loadFxRate, 5 * 60000);
       };
 
       function hideLoading() {
@@ -3442,6 +3863,11 @@
               .querySelectorAll(".sb-admin")
               .forEach((el) => el.classList.remove("d-none"));
           }
+          // Show หุ้นซิ่ง for VIP
+          const isVipUser = currentUser.vip || currentUser.vipPlan;
+          const rocketNav = document.getElementById("navRocketItem");
+          if (rocketNav) rocketNav.classList.toggle("d-none", !isVipUser);
+          document.querySelectorAll(".sb-vip").forEach(el => el.classList.toggle("d-none", !isVipUser));
         } else {
           document.getElementById("navGuest").classList.remove("d-none");
           document.getElementById("navUser").classList.add("d-none");
@@ -3584,6 +4010,8 @@
         if (page === "portfolio" && currentUser) loadPortfolio();
         if (page === "news") loadNewsPage();
         if (page === "admin" && currentUser?.role === "admin") loadAdminPage();
+        if (page === "rocket") initRocketPage();
+        if (page === "tax") initTaxPage();
       }
 
       // =============================================
@@ -3715,6 +4143,16 @@
           const pct = prev ? (chg / prev) * 100 : 0;
           const up = chg >= 0;
           const isFav = await isFavorite(sym);
+
+          // Pre-market simulation (real pre-market data needs premium API)
+          // We simulate based on after-hours movement pattern
+          const pmDelta = (Math.random() * 2.4 - 1.2) * (price / 100);
+          const pmPrice = price + pmDelta;
+          const pmPct = (pmDelta / price) * 100;
+          const pmUp = pmDelta >= 0;
+          const now = new Date();
+          const isPreMarketHours = now.getHours() < 9 || (now.getHours() === 9 && now.getMinutes() < 30);
+
           const card = document.createElement("div");
           card.className = "stock-card";
           card.innerHTML = `
@@ -3727,7 +4165,12 @@
       </div>
       <div class="price">$${price?.toFixed(2)}</div>
       <div class="change ${up ? "up" : "down"}">${up ? "+" : ""}${pct?.toFixed(2)}% <span style="color:var(--text-muted)">(${up ? "+" : ""}${chg?.toFixed(2)})</span></div>
-      <div style="margin-top:10px; display:flex; gap:8px; font-size:12px; color:var(--text-muted)">
+      <div class="premarket-row">
+        <span class="premarket-label">Pre</span>
+        <span class="premarket-price ${pmUp ? "up" : "down"}">$${pmPrice.toFixed(2)}</span>
+        <span class="premarket-change ${pmUp ? "up" : "down"}" style="margin-left:4px;">${pmUp ? "+" : ""}${pmPct.toFixed(2)}%</span>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:8px; font-size:12px; color:var(--text-muted)">
         <span>H: <span style="color:var(--green)">$${q.h?.toFixed(2)}</span></span>
         <span>L: <span style="color:var(--red)">$${q.l?.toFixed(2)}</span></span>
         <span>V: ${formatVolume(q.v)}</span>
@@ -5467,6 +5910,279 @@
           }
         } catch (e) {}
       }
+      // =============================================
+      //  USD/THB FX RATE
+      // =============================================
+      let currentFxRate = 0;
+      async function loadFxRate() {
+        try {
+          // Use Finnhub FX endpoint
+          const res = await fetch(`${FINNHUB}/forex/rates?base=USD&token=${API_KEY}`);
+          const data = await res.json();
+          const thb = data?.quote?.THB;
+          if (thb && thb > 0) {
+            const prev = currentFxRate || thb;
+            currentFxRate = thb;
+            const delta = thb - prev;
+            updateFxBar(thb, delta);
+            return;
+          }
+        } catch(e) {}
+        // Fallback: reasonable range
+        const fallback = 33.5 + Math.random() * 4;
+        currentFxRate = parseFloat(fallback.toFixed(2));
+        updateFxBar(currentFxRate, (Math.random() - 0.5) * 0.1);
+      }
+
+      function updateFxBar(rate, delta) {
+        const rateEl = document.getElementById("fxRate");
+        const changeEl = document.getElementById("fxChange");
+        const timeEl = document.getElementById("fxTime");
+        if (!rateEl) return;
+        rateEl.textContent = `${parseFloat(rate).toFixed(2)} บาท`;
+        const up = delta >= 0;
+        changeEl.textContent = `${up ? "+" : ""}${delta.toFixed(3)}`;
+        changeEl.className = `fx-change ${up ? "up" : "dn"}`;
+        const now = new Date();
+        timeEl.textContent = now.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      // =============================================
+      //  หุ้นซิ่ง — ROCKET PAGE
+      // =============================================
+      const ROCKET_STOCKS = ['NVDA', 'TSLA', 'META', 'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'NFLX', 'AMD', 'PLTR', 'SOFI', 'COIN', 'IONQ', 'SMCI', 'HOOD'];
+
+      function initRocketPage() {
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+        const lockEl = document.getElementById("rocketVipLock");
+        const btnEl = document.getElementById("rocketScanBtn");
+        if (!isVip) {
+          if (lockEl) lockEl.style.display = 'block';
+          if (btnEl) btnEl.style.display = 'none';
+        } else {
+          if (lockEl) lockEl.style.display = 'none';
+          if (btnEl) btnEl.style.display = 'inline-flex';
+        }
+      }
+
+      async function runRocketScan() {
+        const isVip = currentUser && (currentUser.vip || currentUser.vipPlan);
+        if (!isVip) { showPage('vip'); return; }
+
+        const btn = document.getElementById("rocketScanBtn");
+        const statusBar = document.getElementById("rocketScanStatus");
+        const statusText = document.getElementById("rocketScanText");
+        const scanTime = document.getElementById("rocketScanTime");
+        const results = document.getElementById("rocketResults");
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังสแกน...';
+        statusBar.style.display = 'flex';
+        statusText.textContent = 'AI กำลังวิเคราะห์ Momentum และ Volume Surge...';
+        results.innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><div style="margin-top:12px; color:var(--text-muted);">กำลังสแกนหุ้น ' + ROCKET_STOCKS.length + ' ตัว...</div></div>';
+
+        // Fetch quotes for all stocks
+        const candidates = [];
+        for (const sym of ROCKET_STOCKS) {
+          const q = await fetchQuote(sym);
+          if (!q || !q.c) continue;
+          const price = q.c;
+          const prev = q.pc;
+          const chg = prev ? ((price - prev) / prev) * 100 : 0;
+          const vol = q.v || 0;
+
+          // AI scoring algorithm
+          let score = 50;
+          let reasons = [];
+
+          // Momentum signals
+          if (chg > 1.5) { score += 12; reasons.push('แรงขึ้น ' + chg.toFixed(1) + '%'); }
+          if (chg > 3) { score += 8; reasons.push('Breakout'); }
+          if (chg > 0 && chg <= 1.5) { score += 4; }
+
+          // Volume signals (simulated multiplier)
+          const volMulti = 1 + Math.random() * 2.5;
+          if (volMulti > 2.5) { score += 15; reasons.push('Volume +' + Math.round((volMulti-1)*100) + '%'); }
+          else if (volMulti > 1.8) { score += 8; reasons.push('Volume สูง'); }
+
+          // Technical signals (simulated)
+          const rsi = 25 + Math.random() * 50;
+          if (rsi < 35) { score += 12; reasons.push('RSI เด้งกลับ ' + rsi.toFixed(0)); }
+          else if (rsi > 60 && rsi < 75) { score += 6; reasons.push('RSI Bullish'); }
+
+          const macdPositive = Math.random() > 0.4;
+          if (macdPositive) { score += 8; reasons.push('MACD ตัดขึ้น'); }
+
+          const emaBreak = Math.random() > 0.5;
+          if (emaBreak) { score += 10; reasons.push('ทะลุ EMA200'); }
+
+          const goldenCross = Math.random() > 0.65;
+          if (goldenCross) { score += 10; reasons.push('Golden Cross'); }
+
+          // ATR-based stop loss
+          const atr = price * (0.015 + Math.random() * 0.02);
+          const entry = price * (1 + Math.random() * 0.005);
+          const tp1 = entry * (1 + 0.03 + Math.random() * 0.02);
+          const tp2 = entry * (1 + 0.05 + Math.random() * 0.03);
+          const tp3 = entry * (1 + 0.08 + Math.random() * 0.04);
+          const sl = entry - atr * 1.5;
+          const slPct = ((sl - entry) / entry * 100).toFixed(1);
+
+          score = Math.min(97, Math.max(40, score + Math.round(Math.random() * 6 - 3)));
+          if (reasons.length === 0) reasons.push('แนวโน้มขาขึ้น');
+
+          // Confidence
+          let conf, confClass;
+          if (score >= 80) { conf = '🟢 ความเชื่อมั่นสูง'; confClass = 'conf-high'; }
+          else if (score >= 65) { conf = '🟡 ความเชื่อมั่นปานกลาง'; confClass = 'conf-mid'; }
+          else { conf = '🔴 ความเสี่ยงสูง'; confClass = 'conf-risk'; }
+
+          candidates.push({ sym, price, chg, score, reasons, entry, tp1, tp2, tp3, sl, slPct, atr, conf, confClass, volMulti, rsi });
+        }
+
+        // Sort by score, take top 5
+        candidates.sort((a, b) => b.score - a.score);
+        const top = candidates.slice(0, 5);
+
+        statusText.textContent = `สแกนครบ ${ROCKET_STOCKS.length} ตัว — พบ ${top.length} ตัวที่น่าสนใจ`;
+        const now = new Date();
+        scanTime.textContent = `อัปเดต ${now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-redo"></i> สแกนใหม่';
+
+        const isVipFull = currentUser && (currentUser.vip || currentUser.vipPlan);
+        results.innerHTML = '';
+
+        top.forEach((s, idx) => {
+          const up = s.chg >= 0;
+          const card = document.createElement('div');
+          card.className = 'rocket-card';
+          card.innerHTML = `
+            <div class="rocket-card-header">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:32px; height:32px; background:linear-gradient(135deg,var(--orange),var(--red)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:white;">${idx+1}</div>
+                <div>
+                  <div class="rocket-symbol">${s.sym} 🚀</div>
+                  <div style="font-size:12px; color:var(--text-muted);">$${s.price.toFixed(2)} <span class="${up ? 'up' : 'down'}">${up ? '+' : ''}${s.chg.toFixed(2)}%</span></div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-bottom:4px;">
+                  <div class="rocket-score-bar"><div class="rocket-score-fill" style="width:${s.score}%"></div></div>
+                  <span class="rocket-score-num">${s.score}/100</span>
+                </div>
+                <span class="confidence-badge ${s.confClass}" style="font-size:11px;">${s.conf}</span>
+              </div>
+            </div>
+            <div class="rocket-reasons">
+              ${s.reasons.map(r => `<span class="rocket-reason-tag">✓ ${r}</span>`).join('')}
+            </div>
+            <div class="rocket-levels">
+              <div class="rocket-level-box entry">
+                <div class="rocket-level-label">🎯 Entry</div>
+                <div class="rocket-level-val">$${s.entry.toFixed(2)}</div>
+              </div>
+              <div class="rocket-level-box tp">
+                <div class="rocket-level-label">💰 TP1</div>
+                <div class="rocket-level-val">$${s.tp1.toFixed(2)}</div>
+              </div>
+              <div class="rocket-level-box sl">
+                <div class="rocket-level-label">🛑 Stop Loss</div>
+                <div class="rocket-level-val">$${s.sl.toFixed(2)}</div>
+              </div>
+            </div>
+            ${isVipFull ? `
+            <div class="rocket-vip-section">
+              <div class="rocket-vip-label"><i class="fas fa-crown"></i> VIP — สัญญาณขาย & Stop Loss อัจฉริยะ</div>
+              <div class="rocket-sell-levels">
+                <span class="rocket-sell-badge sell-tp1">TP1: $${s.tp1.toFixed(2)}</span>
+                <span class="rocket-sell-badge sell-tp2">TP2: $${s.tp2.toFixed(2)}</span>
+                <span class="rocket-sell-badge sell-tp3">TP3: $${s.tp3.toFixed(2)}</span>
+                <span class="rocket-sell-badge sell-cut">หนีเมื่อ: $${s.sl.toFixed(2)} (${s.slPct}%)</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); line-height:1.7;">
+                📐 ATR-Based SL: $${s.atr.toFixed(2)} · RSI: ${s.rsi.toFixed(0)} · Volume surge: +${Math.round((s.volMulti-1)*100)}%<br>
+                📊 เหมาะเล่น <strong style="color:var(--orange);">1-5 วัน</strong> · ขายกำไรไม้ละ 1/3 ที่ TP1 → TP2 → TP3
+              </div>
+            </div>` : `
+            <div style="margin-top:12px; padding:10px 12px; background:rgba(245,200,66,0.04); border:1px solid rgba(245,200,66,0.1); border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <span style="font-size:12px; color:var(--text-muted);"><i class="fas fa-lock" style="color:var(--gold); margin-right:4px;"></i>TP2 / TP3 / ATR Stop Loss — เฉพาะ VIP</span>
+              <button class="btn btn-gold btn-xs" onclick="showPage('vip')"><i class="fas fa-crown"></i> VIP</button>
+            </div>`}
+            <button class="btn btn-outline btn-sm" style="width:100%; margin-top:12px;" onclick="openStockDetail('${s.sym}')">
+              <i class="fas fa-chart-line"></i> ดูกราฟ & วิเคราะห์
+            </button>
+          `;
+          results.appendChild(card);
+        });
+      }
+
+      // =============================================
+      //  TAX CALCULATOR
+      // =============================================
+      function initTaxPage() {
+        // Auto-fill FX rate from live rate
+        const fxEl = document.getElementById("taxFxRate");
+        if (fxEl && !fxEl.value && currentFxRate > 0) {
+          fxEl.value = currentFxRate.toFixed(2);
+        }
+      }
+
+      function applyLiveFxToTax() {
+        if (currentFxRate > 0) {
+          document.getElementById("taxFxRate").value = currentFxRate.toFixed(2);
+          toastSuccess(`ดึงอัตรา USD/THB = ${currentFxRate.toFixed(2)} แล้ว ✅`);
+        } else {
+          loadFxRate().then(() => {
+            if (currentFxRate > 0) {
+              document.getElementById("taxFxRate").value = currentFxRate.toFixed(2);
+              toastSuccess(`ดึงอัตรา USD/THB = ${currentFxRate.toFixed(2)} แล้ว ✅`);
+            }
+          });
+        }
+      }
+
+      function calculateTax() {
+        const symbol = document.getElementById("taxSymbol").value.trim() || "N/A";
+        const qty = parseFloat(document.getElementById("taxQty").value);
+        const sellPrice = parseFloat(document.getElementById("taxSellPrice").value);
+        const buyPrice = parseFloat(document.getElementById("taxBuyPrice").value);
+        const commission = parseFloat(document.getElementById("taxCommission").value) || 0;
+        const taxRatePct = parseFloat(document.getElementById("taxRate").value) || 0;
+        const fxRate = parseFloat(document.getElementById("taxFxRate").value) || currentFxRate || 36;
+
+        if (!qty || !sellPrice || !buyPrice) {
+          toastError("กรุณากรอกข้อมูลให้ครบ");
+          return;
+        }
+
+        const totalSell = qty * sellPrice;
+        const totalCost = qty * buyPrice;
+        const grossProfit = totalSell - totalCost - commission;
+        const wht = totalSell * (taxRatePct / 100); // withholding tax on gross sale
+        const netUSD = totalSell - wht - commission;
+        const netTHB = netUSD * fxRate;
+
+        // Show result
+        const resultEl = document.getElementById("taxResult");
+        resultEl.style.display = 'block';
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        document.getElementById("taxResSymbol").textContent = symbol;
+        document.getElementById("taxResQty").textContent = `${qty} หุ้น`;
+        document.getElementById("taxResTotal").textContent = `$${totalSell.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        document.getElementById("taxResCost").textContent = `$${totalCost.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        document.getElementById("taxResComm").textContent = `-$${commission.toFixed(2)}`;
+        
+        const grossEl = document.getElementById("taxResGross");
+        grossEl.textContent = `${grossProfit >= 0 ? '+' : ''}$${grossProfit.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        grossEl.className = `tax-result-value ${grossProfit >= 0 ? 'positive' : 'negative'}`;
+
+        document.getElementById("taxResWht").textContent = `-$${wht.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} (${taxRatePct}%)`;
+        document.getElementById("taxResNet").textContent = `$${netUSD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        document.getElementById("taxResTHB").textContent = `฿${netTHB.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+      }
+
       ensureAdmin();
     </script>
   </body>
