@@ -18,6 +18,8 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="config.js"></script>
+    <script src="vip-system.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
@@ -6658,15 +6660,19 @@
       // =============================================
       async function ensureAdmin() {
         try {
+          const adminUsername = getConfig('ADMIN_USERNAME');
+          const adminPassword = getConfig('ADMIN_PASSWORD');
+          const adminName = getConfig('ADMIN_NAME');
+          
           const snap = await db
             .collection("users")
-            .where("username", "==", "ket")
+            .where("username", "==", adminUsername)
             .get();
           if (snap.empty) {
             await db.collection("users").add({
-              username: "ket",
-              password: "admin1234",
-              name: "Admin",
+              username: adminUsername,
+              password: adminPassword,
+              name: adminName,
               role: "admin",
               vip: true,
               status: "active",

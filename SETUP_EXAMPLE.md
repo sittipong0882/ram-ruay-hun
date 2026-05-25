@@ -2,13 +2,32 @@
 
 ## 🔑 Default Test Credentials
 
-ระบบจะสร้างบัญชีแอดมิน `ket` ให้อัตโนมัติ หากยังไม่มีในฐานข้อมูล:
+ระบบจะสร้างบัญชีแอดมิน `ket` ให้อัตโนมัติ หากยังไม่มีในฐานข้อมูล
+
+ค่าเริ่มต้นจาก `.env`:
 
 ```
 ชื่อผู้ใช้: ket
 รหัสผ่าน: admin1234
 บทบาท: admin
 ```
+
+### ✅ ดำเนินการก่อน
+
+1. สร้างไฟล์ `.env` ในไดเรกทอรีหลัก:
+```env
+# Admin Credentials
+ADMIN_USERNAME=ket
+ADMIN_PASSWORD=admin1234
+ADMIN_NAME=Admin
+```
+
+2. รัน script Python เพื่อสร้าง `config.js`:
+```bash
+python3 update_html.py
+```
+
+> **⚠️ ความปลอดภัย:** ไฟล์ `.env` อยู่ใน `.gitignore` แล้ว ดังนั้นจะไม่มีการ push ไปยัง GitHub
 
 ## 1. Firebase Config
 

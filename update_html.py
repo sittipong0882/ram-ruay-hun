@@ -1,13 +1,71 @@
 #!/usr/bin/env python3
 import re
+import os
+from pathlib import Path
+
+# =============================================
+# LOAD ENVIRONMENT VARIABLES FROM .env
+# =============================================
+def load_env_file():
+    """Load .env file and return as dictionary"""
+    env_vars = {}
+    env_path = Path('.env')
+    
+    if env_path.exists():
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                # Parse KEY=VALUE
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
+    
+    return env_vars
+
+# Load environment variables
+env_vars = load_env_file()
+
+# Generate config.js file
+def generate_config_js(env_vars):
+    """Generate config.js from environment variables"""
+    config_content = '''// =============================================
+// CONFIGURATION - Auto-generated from .env
+// =============================================
+// This file is generated automatically and should not be edited directly.
+// Modify .env file instead.
+
+const APP_CONFIG = {
+  ADMIN_USERNAME: "{ADMIN_USERNAME}",
+  ADMIN_PASSWORD: "{ADMIN_PASSWORD}",
+  ADMIN_NAME: "{ADMIN_NAME}",
+};
+
+// Helper function to get config value
+function getConfig(key, defaultValue = null) {
+  return APP_CONFIG[key] !== undefined ? APP_CONFIG[key] : defaultValue;
+}
+'''.format(
+        ADMIN_USERNAME=env_vars.get('ADMIN_USERNAME', 'Adminket'),
+        ADMIN_PASSWORD=env_vars.get('ADMIN_PASSWORD', 'admin1234'),
+        ADMIN_NAME=env_vars.get('ADMIN_NAME', 'Adminket'),
+    )
+    
+    with open('config.js', 'w', encoding='utf-8') as f:
+        f.write(config_content)
+
+# Generate config.js
+generate_config_js(env_vars)
 
 # Read the HTML file
 with open('index.html', 'r', encoding='utf-8') as f:
     content = f.read()
 
-# 1. Add VIP system script reference
+# 1. Add config.js and VIP system script references
 script_tag = '<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>'
-new_script_section = script_tag + '\n    <script src="vip-system.js" defer></script>'
+new_script_section = script_tag + '\n    <script src="config.js"></script>\n    <script src="vip-system.js" defer></script>'
 content = content.replace(script_tag, new_script_section)
 
 # 2. Update subscribe button function
@@ -123,6 +181,8 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write(content)
 
 print("✓ HTML updated successfully!")
+print("  - Generated config.js from .env file")
+print("  - Added config.js script reference")
 print("  - Added VIP system script reference")
 print("  - Added VIP subscription modals")
 print("  - Added VIP request status modal")

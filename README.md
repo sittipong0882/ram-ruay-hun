@@ -13,7 +13,23 @@
 2. หากต้องการใช้งานบนเว็บจริง ให้อัปโหลดไฟล์นี้ไปยังเว็บโฮสต์แบบ static เช่น GitHub Pages, Netlify หรือ Vercel
 
 ## 🔧 การตั้งค่าในโค้ดปัจจุบัน
-### 1. Firebase Config
+### 1. ตั้งค่าสภาพแวดล้อม (.env)
+ให้สร้างไฟล์ `.env` ในไดเรกทอรีหลัก (อยู่เคียงข้าง `index.html`):
+```env
+# Admin Credentials
+ADMIN_USERNAME=ket
+ADMIN_PASSWORD=admin1234
+ADMIN_NAME=Admin
+```
+
+**⚠️ ความปลอดภัย:** ไฟล์ `.env` อยู่ใน `.gitignore` แล้ว ดังนั้นจะไม่มีการ push ไปยัง GitHub และรหัสผ่านจะปลอดภัย
+
+หลังจากแก้ไข `.env` ให้รัน script Python เพื่อสร้าง `config.js`:
+```bash
+python3 update_html.py
+```
+
+### 2. Firebase Config
 ค่า Firebase ถูกฝังไว้ใน `index.html` แล้ว:
 ```javascript
 const firebaseConfig = {
@@ -28,7 +44,7 @@ const firebaseConfig = {
 ```
 หากต้องการใช้งาน Firebase ของตัวเอง ให้แทนค่าตรงนี้ด้วยค่าของโปรเจกต์ Firebase ของคุณ
 
-### 2. Firestore
+### 3. Firestore
 ต้องเปิดใช้งาน Firestore Database ใน Firebase Console
 
 ตัวอย่างกฎแบบทดสอบสำหรับการใช้งานเบื้องต้น:
@@ -44,7 +60,7 @@ service cloud.firestore {
 ```
 > ควรปรับกฎเมื่อจะนำระบบขึ้น production
 
-### 3. Finnhub API
+### 4. Finnhub API
 โค้ดปัจจุบันใช้ Finnhub API สำหรับโหลดข่าวหุ้นจาก `company-news`:
 ```javascript
 const API_KEY = "d7qrrb1r01qudmina8qgd7qrrb1r01qudmina8r0";
@@ -53,10 +69,13 @@ const FINNHUB = "https://finnhub.io/api/v1";
 หากต้องการใช้ API Key ของตัวเอง ให้แก้ไขค่า `API_KEY` ใน `index.html`
 
 ## 🔑 บัญชีทดสอบ
-ระบบจะสร้างผู้ดูแล `ket` ให้อัตโนมัติหากยังไม่มีในฐานข้อมูล
+ระบบจะสร้างผู้ดูแลโดยอัตโนมัติจากค่าใน `.env` หากยังไม่มีในฐานข้อมูล
 
+ค่าเริ่มต้น:
 - ชื่อผู้ใช้: `ket`
 - รหัสผ่าน: `admin1234`
+
+> หากต้องการเปลี่ยนค่า ให้แก้ไข `.env` แล้วรัน `python3 update_html.py`
 
 ## ✨ ฟีเจอร์หลักในเวอร์ชันนี้
 - สมัครสมาชิก / เข้าสู่ระบบ
