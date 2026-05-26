@@ -18,8 +18,6 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="config.js"></script>
-    <script src="vip-system.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
@@ -6660,19 +6658,15 @@
       // =============================================
       async function ensureAdmin() {
         try {
-          const adminUsername = getConfig('ADMIN_USERNAME');
-          const adminPassword = getConfig('ADMIN_PASSWORD');
-          const adminName = getConfig('ADMIN_NAME');
-          
           const snap = await db
             .collection("users")
-            .where("username", "==", adminUsername)
+            .where("username", "==", "ket")
             .get();
           if (snap.empty) {
             await db.collection("users").add({
-              username: adminUsername,
-              password: adminPassword,
-              name: adminName,
+              username: "ket",
+              password: "admin1234",
+              name: "Admin",
               role: "admin",
               vip: true,
               status: "active",
@@ -7192,10 +7186,53 @@
       @media (max-width:600px) {
         #oaiGrid { grid-template-columns: 1fr !important; padding: 12px !important; }
       }
+
+      /* ── Price Target Box ── */
+      .oai-pt-box {
+        margin: 0 14px 14px;
+        background: rgba(245,200,66,0.04);
+        border: 1px solid rgba(245,200,66,0.15);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .oai-pt-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 8px;
+        letter-spacing: 0.3px;
+      }
+      .oai-pt-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+      .oai-pt-col {
+        background: rgba(255,255,255,0.04);
+        border-radius: 7px;
+        padding: 6px 8px;
+        text-align: center;
+      }
+      .oai-pt-lbl {
+        font-size: 9px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 3px;
+      }
+      .oai-pt-val {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 13px;
+        font-weight: 700;
+      }
     </style>
 
     <!-- ============================================================
-         OPTIONS AI — JS Engine (patch showPage + all logic)
+         OPTIONS AI — JS Engine v2 (Real Indicators, No Math.random)
     ============================================================ -->
     <script>
     // Patch showPage to handle options-ai
@@ -7220,12 +7257,25 @@
 
     const OAI_DEFAULTS = ['NVDA','TSLA','AAPL','MSFT','AMZN','META'];
     let oaiSymbols = [...OAI_DEFAULTS];
+    let oaiAutoRefreshTimer = null;
+    // Cache candles separately with TTL (5 min)
+    const oaiCandleCache = {}; // { symbol: { data, ts } }
+    const OAI_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
     function initOptionsAI() {
       const isVip = currentUser && (currentUser.vip || currentUser.vipPlan || currentUser.role === 'admin');
       document.getElementById('oaiVipLock').style.display = isVip ? 'none' : 'block';
       document.getElementById('oaiMain').style.display   = isVip ? 'block' : 'none';
-      if (isVip) oaiAnalyzeAll();
+      if (isVip) {
+        oaiAnalyzeAll();
+        // Auto-refresh every 5 minutes
+        if (oaiAutoRefreshTimer) clearInterval(oaiAutoRefreshTimer);
+        oaiAutoRefreshTimer = setInterval(() => {
+          // Only refresh if options-ai page is visible
+          const pg = document.getElementById('page-options-ai');
+          if (pg && pg.classList.contains('active')) oaiAnalyzeAll();
+        }, OAI_CACHE_TTL);
+      }
     }
 
     function oaiQuickAdd(sym) {
@@ -7250,7 +7300,6 @@
     async function oaiAnalyzeAll() {
       const grid = document.getElementById('oaiGrid');
       document.getElementById('oaiSummaryBar').innerHTML = '';
-      // Skeletons
       grid.innerHTML = oaiSymbols.map(s => `
         <div class="oai-skel" id="oai-sk-${s}">
           <div class="oai-skel-line" style="width:35%"></div>
@@ -7268,6 +7317,7 @@
 
     async function oaiFetch(symbol) {
       try {
+        // --- Quote (use existing cachedPrices, invalidate after 5 min) ---
         let q = cachedPrices[symbol];
         if (!q || !q.c) {
           const res = await fetch(`${FINNHUB}/quote?symbol=${symbol}&token=${API_KEY}`);
@@ -7277,190 +7327,410 @@
         const price = q.c;
         if (!price || price <= 0) return null;
 
-        const to = Math.floor(Date.now()/1000);
-        const from = to - 65*86400;
+        // --- Candles: 210 trading days ≈ ~300 calendar days ---
         let candles = null;
-        try {
-          const cr = await fetch(`${FINNHUB}/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${API_KEY}`);
-          candles = await cr.json();
-        } catch(e){}
+        const cached = oaiCandleCache[symbol];
+        if (cached && (Date.now() - cached.ts) < OAI_CACHE_TTL) {
+          candles = cached.data;
+        } else {
+          const to   = Math.floor(Date.now() / 1000);
+          const from = to - 300 * 86400; // ~300 calendar days → ~210 trading days
+          try {
+            const cr = await fetch(
+              `${FINNHUB}/stock/candle?symbol=${symbol}&resolution=D&from=${from}&to=${to}&token=${API_KEY}`
+            );
+            candles = await cr.json();
+            if (candles && candles.s === 'ok') {
+              oaiCandleCache[symbol] = { data: candles, ts: Date.now() };
+            }
+          } catch(e) { candles = null; }
+        }
 
-        return oaiEngine(symbol, q, candles);
+        // --- Analyst Price Target & Recommendations ---
+        let priceTarget = null;
+        try {
+          const [ptRes, recRes] = await Promise.all([
+            fetch(`${FINNHUB}/stock/price-target?symbol=${symbol}&token=${API_KEY}`),
+            fetch(`${FINNHUB}/stock/recommendation?symbol=${symbol}&token=${API_KEY}`)
+          ]);
+          const ptData  = await ptRes.json();
+          const recData = await recRes.json();
+          const mean   = ptData && ptData.targetMean   > 0 ? ptData.targetMean   : null;
+          const high   = ptData && ptData.targetHigh   > 0 ? ptData.targetHigh   : null;
+          const low    = ptData && ptData.targetLow    > 0 ? ptData.targetLow    : null;
+          const median = ptData && ptData.targetMedian > 0 ? ptData.targetMedian : null;
+          let buy = 0, hold = 0, sell = 0, strongBuy = 0, strongSell = 0;
+          if (Array.isArray(recData) && recData.length > 0) {
+            const latest = recData[0];
+            buy       = latest.buy       || 0;
+            hold      = latest.hold      || 0;
+            sell      = latest.sell      || 0;
+            strongBuy = latest.strongBuy || 0;
+            strongSell= latest.strongSell|| 0;
+          }
+          const totalAnalysts = buy + hold + sell + strongBuy + strongSell;
+          if (mean || totalAnalysts > 0) {
+            priceTarget = { mean, high, low, median,
+                            buy, hold, sell, strongBuy, strongSell, totalAnalysts,
+                            updated: ptData && ptData.lastUpdated ? ptData.lastUpdated.slice(0,10) : null };
+          }
+        } catch(e2) { priceTarget = null; }
+
+        return oaiEngineReal(symbol, q, candles, priceTarget);
       } catch(e) {
         return null;
       }
     }
 
-    function oaiEngine(symbol, q, candles) {
-      const price = q.c, prevClose = q.pc || q.c;
+    // ================================================================
+    //  INDICATOR HELPERS  (pure functions, no random)
+    // ================================================================
+
+    function _ema(arr, n) {
+      if (!arr || arr.length < n) return null;
+      const k = 2 / (n + 1);
+      let e = arr.slice(0, n).reduce((a, b) => a + b, 0) / n;
+      for (let i = n; i < arr.length; i++) e = arr[i] * k + e * (1 - k);
+      return e;
+    }
+
+    function _emaAll(arr, n) {
+      // Returns full EMA array (same length as arr, null-padded before n)
+      if (!arr || arr.length < n) return [];
+      const k = 2 / (n + 1);
+      const out = new Array(arr.length).fill(null);
+      out[n - 1] = arr.slice(0, n).reduce((a, b) => a + b, 0) / n;
+      for (let i = n; i < arr.length; i++) out[i] = arr[i] * k + out[i-1] * (1 - k);
+      return out;
+    }
+
+    function _rsi(closes, n = 14) {
+      if (!closes || closes.length < n + 1) return null;
+      // Wilder smoothing RSI
+      let avgGain = 0, avgLoss = 0;
+      for (let i = closes.length - n; i < closes.length; i++) {
+        const d = closes[i] - closes[i - 1];
+        if (d > 0) avgGain += d; else avgLoss -= d;
+      }
+      avgGain /= n; avgLoss /= n;
+      if (avgLoss === 0) return 100;
+      return 100 - 100 / (1 + avgGain / avgLoss);
+    }
+
+    function _macd(closes) {
+      // Returns { macdLine, signalLine, histogram } or null
+      if (!closes || closes.length < 35) return null;
+      const ema12 = _emaAll(closes, 12);
+      const ema26 = _emaAll(closes, 26);
+      // build MACD line
+      const macdLine = closes.map((_, i) =>
+        ema12[i] !== null && ema26[i] !== null ? ema12[i] - ema26[i] : null
+      ).filter(v => v !== null);
+      if (macdLine.length < 9) return null;
+      const sigArr = _emaAll(macdLine, 9);
+      const sig = sigArr[sigArr.length - 1];
+      const macd = macdLine[macdLine.length - 1];
+      const hist = macd - (sig || 0);
+      // Also grab previous histogram to detect crossover direction
+      const prevMacd = macdLine[macdLine.length - 2] || macd;
+      const prevSig  = sigArr[sigArr.length - 2] || sig;
+      const prevHist = prevMacd - (prevSig || 0);
+      return { macdLine: macd, signalLine: sig, histogram: hist, prevHistogram: prevHist };
+    }
+
+    function _bollingerBands(closes, n = 20, mult = 2) {
+      if (!closes || closes.length < n) return null;
+      const slice = closes.slice(-n);
+      const mid = slice.reduce((a, b) => a + b, 0) / n;
+      const variance = slice.reduce((a, b) => a + (b - mid) ** 2, 0) / n;
+      const sd = Math.sqrt(variance);
+      return { upper: mid + mult * sd, middle: mid, lower: mid - mult * sd, sd };
+    }
+
+    function _atr(highs, lows, closes, n = 14) {
+      if (!highs || highs.length < n + 1) return null;
+      const trs = [];
+      for (let i = highs.length - n; i < highs.length; i++) {
+        const hl = highs[i] - lows[i];
+        const hc = Math.abs(highs[i] - closes[i - 1]);
+        const lc = Math.abs(lows[i] - closes[i - 1]);
+        trs.push(Math.max(hl, hc, lc));
+      }
+      return trs.reduce((a, b) => a + b, 0) / n;
+    }
+
+    function _pivotPoints(high20, low20, prevClose) {
+      // Standard pivot point
+      const P  = (high20 + low20 + prevClose) / 3;
+      const R1 = 2 * P - low20;
+      const S1 = 2 * P - high20;
+      const R2 = P + (high20 - low20);
+      const S2 = P - (high20 - low20);
+      return { P, R1, S1, R2, S2 };
+    }
+
+    function _stoch(closes, highs, lows, n = 14) {
+      if (!closes || closes.length < n) return null;
+      const c = closes.slice(-n), h = highs.slice(-n), l = lows.slice(-n);
+      const hh = Math.max(...h), ll = Math.min(...l);
+      return hh === ll ? 50 : ((c[c.length - 1] - ll) / (hh - ll)) * 100;
+    }
+
+    // ================================================================
+    //  MAIN ENGINE  (real indicators only, no rng / Math.random)
+    // ================================================================
+
+    function oaiEngineReal(symbol, q, candles, priceTarget) {
+      const price     = q.c;
+      const prevClose = q.pc || q.c;
       const changePct = ((price - prevClose) / prevClose) * 100;
 
-      const ok = candles && candles.s === 'ok' && Array.isArray(candles.c) && candles.c.length >= 5;
+      const ok = candles && candles.s === 'ok' &&
+                 Array.isArray(candles.c) && candles.c.length >= 5;
       const C = ok ? candles.c : [];
       const H = ok ? candles.h : [];
       const L = ok ? candles.l : [];
       const O = ok ? candles.o : [];
       const V = ok ? candles.v : [];
 
-      // ─── helpers ───
-      function ema(arr, n) {
-        if (arr.length < n) return null;
-        const k = 2/(n+1);
-        let e = arr.slice(0,n).reduce((a,b)=>a+b,0)/n;
-        for (let i=n;i<arr.length;i++) e = arr[i]*k + e*(1-k);
-        return e;
+      const limitedData = C.length > 0 && C.length < 50;
+
+      // ── Pre-compute indicators ──────────────────────────────────────
+      const rsiV  = C.length >= 15 ? _rsi(C)    : null;
+      const macdR = C.length >= 35 ? _macd(C)   : null;
+      const bb    = C.length >= 20 ? _bollingerBands(C) : null;
+      const atrV  = H.length >= 15 ? _atr(H, L, C)     : null;
+      const stochV= C.length >= 14 ? _stoch(C, H, L)   : null;
+
+      const e20  = C.length >= 20  ? _ema(C, 20)  : null;
+      const e50  = C.length >= 50  ? _ema(C, 50)  : null;
+      const e200 = C.length >= 200 ? _ema(C, 200) : null;
+
+      const high20 = H.length >= 20 ? Math.max(...H.slice(-20)) : (H.length > 0 ? Math.max(...H) : price * 1.05);
+      const low20  = L.length >= 20 ? Math.min(...L.slice(-20)) : (L.length > 0 ? Math.min(...L) : price * 0.95);
+      const pivot  = _pivotPoints(high20, low20, prevClose);
+
+      // ================================================================
+      // === 1. TREND  (max ±20) ========================================
+      let tS = 0; const tR = [];
+      if (C.length >= 5) {
+        const r5 = C.slice(-5); let up = 0, dn = 0;
+        for (let i = 1; i < r5.length; i++) r5[i] > r5[i-1] ? up++ : dn++;
+        if (up >= 3)      { tS = 20; tR.push('Higher High/Low — ขาขึ้นต่อเนื่อง'); }
+        else if (dn >= 3) { tS = -10; tR.push('Lower High/Low — ขาลงต่อเนื่อง'); }
+        else              { tS = 3;   tR.push('Sideways — ยังไม่มีทิศทางชัด'); }
+      } else if (C.length > 0) {
+        // Limited data: use changePct only
+        if (changePct > 1)      { tS = 10; tR.push(`วันนี้ +${changePct.toFixed(1)}% — ข้อมูลจำกัด`); }
+        else if (changePct < -1){ tS = -6; tR.push(`วันนี้ ${changePct.toFixed(1)}% — ข้อมูลจำกัด`); }
+        else                    { tS = 2;  tR.push('ข้อมูลจำกัด — ไม่สามารถระบุ Trend'); }
+      } else {
+        tS = 0; tR.push('ไม่มีข้อมูล Candle — ไม่ประเมิน Trend');
       }
-      function rsi(arr, n=14) {
-        if (arr.length < n+1) return 50;
-        let g=0,l=0;
-        for (let i=arr.length-n;i<arr.length;i++) {
-          const d = arr[i]-arr[i-1];
-          if(d>0) g+=d; else l-=d;
+      if (changePct >  1.5) { tS += 5; tR.push(`Momentum วันนี้ +${changePct.toFixed(1)}%`); }
+      else if (changePct < -1.5) { tS -= 5; tR.push(`Momentum วันนี้ ${changePct.toFixed(1)}%`); }
+      tS = Math.max(-20, Math.min(20, tS));
+
+      // === 2. EMA  (max ±20) ==========================================
+      let eS = 0; const eR = [];
+      if (e20 !== null) {
+        if (price > e20) { eS += 7; eR.push(`เหนือ EMA20 ($${e20.toFixed(2)})`); }
+        else             { eS -= 5; eR.push(`หลุด EMA20 ($${e20.toFixed(2)})`); }
+      }
+      if (e50 !== null) {
+        if (price > e50) { eS += 7; eR.push(`เหนือ EMA50 ($${e50.toFixed(2)})`); }
+        else             { eS -= 8; eR.push(`หลุด EMA50 ($${e50.toFixed(2)}) — สัญญาณลบ`); }
+      }
+      if (e200 !== null) {
+        if (price > e200) { eS += 6; eR.push('เหนือ EMA200 — ขาขึ้นระยะยาว'); }
+        else              { eS -= 10; eR.push('หลุด EMA200 — แนวโน้มระยะยาวลบ'); }
+      }
+      // Golden/Death cross (e20 vs e50)
+      if (e20 !== null && e50 !== null) {
+        if (e20 > e50) eR.push('EMA20 > EMA50 — Golden alignment');
+        else           eR.push('EMA20 < EMA50 — Bearish alignment');
+      }
+      if (e20 === null && e50 === null) eR.push('ข้อมูลไม่พอคำนวณ EMA');
+      eS = Math.max(-20, Math.min(20, eS));
+
+      // === 3. MOMENTUM  (max ±20) =====================================
+      let mS = 0; const mR = [];
+
+      // RSI
+      if (rsiV !== null) {
+        if      (rsiV < 30)             { mS += 10; mR.push(`RSI ${rsiV.toFixed(0)} — Oversold ดีซื้อ`); }
+        else if (rsiV > 70)             { mS -= 8;  mR.push(`RSI ${rsiV.toFixed(0)} — Overbought ระวัง`); }
+        else if (rsiV >= 50 && rsiV <= 70) { mS += 5; mR.push(`RSI ${rsiV.toFixed(0)} — ฝั่งบวก`); }
+        else if (rsiV >= 40 && rsiV < 50) { mS += 2; mR.push(`RSI ${rsiV.toFixed(0)} — เป็นกลาง`); }
+        else                            { mS -= 2;  mR.push(`RSI ${rsiV.toFixed(0)} — ฝั่งลบ`); }
+      } else {
+        mR.push('RSI: ข้อมูลไม่พอ (ต้องการ ≥15 วัน)');
+      }
+
+      // MACD
+      if (macdR !== null) {
+        const crossingUp   = macdR.histogram > 0 && macdR.prevHistogram <= 0;
+        const crossingDown = macdR.histogram < 0 && macdR.prevHistogram >= 0;
+        if (crossingUp)        { mS += 8; mR.push('MACD ตัดขึ้น — Bullish Crossover 🟢'); }
+        else if (crossingDown) { mS -= 8; mR.push('MACD ตัดลง — Bearish Crossover 🔴'); }
+        else if (macdR.histogram > 0) { mS += 4; mR.push(`MACD Histogram +${macdR.histogram.toFixed(3)} — Momentum ขึ้น`); }
+        else                          { mS -= 3; mR.push(`MACD Histogram ${macdR.histogram.toFixed(3)} — Momentum อ่อน`); }
+      } else {
+        mR.push('MACD: ข้อมูลไม่พอ (ต้องการ ≥35 วัน)');
+      }
+
+      // Stochastic
+      if (stochV !== null) {
+        if      (stochV < 20) { mS += 4; mR.push(`Stochastic ${stochV.toFixed(0)} — Oversold`); }
+        else if (stochV > 80) { mS -= 4; mR.push(`Stochastic ${stochV.toFixed(0)} — Overbought`); }
+      }
+
+      // Bollinger Band squeeze/breakout
+      if (bb !== null) {
+        const bbWidth = (bb.upper - bb.lower) / bb.middle;
+        if (price > bb.upper)       { mS -= 3; mR.push(`ราคาเหนือ BB Upper ($${bb.upper.toFixed(2)}) — ระวัง Overbought`); }
+        else if (price < bb.lower)  { mS += 3; mR.push(`ราคาต่ำกว่า BB Lower ($${bb.lower.toFixed(2)}) — อาจ Bounce`); }
+        else if (bbWidth < 0.04)    { mR.push('Bollinger Squeeze — รอ Breakout'); }
+      }
+
+      mS = Math.max(-20, Math.min(20, mS));
+
+      // === 4. S/R + PIVOT  (max ±15) ==================================
+      let srS = 0; const srR = [];
+
+      // Use pivot points as S/R (more reliable than raw 20-day H/L alone)
+      const nearR1 = Math.abs(price - pivot.R1) / price < 0.012;
+      const nearS1 = Math.abs(price - pivot.S1) / price < 0.012;
+      const nearP  = Math.abs(price - pivot.P)  / price < 0.010;
+
+      if (price >= high20 * 0.999)       { srS = 15;  srR.push(`ทะลุ High 20วัน $${high20.toFixed(2)} — Breakout CALL`); }
+      else if (price <= low20  * 1.001)  { srS = -12; srR.push(`หลุด Low 20วัน $${low20.toFixed(2)} — PUT Signal`); }
+      else if (nearR1)                   { srS = -5;  srR.push(`ชน Pivot R1 $${pivot.R1.toFixed(2)} — ระวังแนวต้าน`); }
+      else if (nearS1)                   { srS = 8;   srR.push(`เด้ง Pivot S1 $${pivot.S1.toFixed(2)} — แนวรับแข็ง`); }
+      else if (nearP)                    { srS = 2;   srR.push(`ใกล้ Pivot Point $${pivot.P.toFixed(2)}`); }
+      else if (price > pivot.P)          { srS = 4;   srR.push(`เหนือ Pivot $${pivot.P.toFixed(2)} — เชิงบวก`); }
+      else                               { srS = -3;  srR.push(`ต่ำกว่า Pivot $${pivot.P.toFixed(2)} — เชิงลบ`); }
+
+      srS = Math.max(-15, Math.min(15, srS));
+
+      // === 5. VOLUME  (max ±15) =======================================
+      let vS = 0; const vR = [];
+      if (V.length >= 10) {
+        const avg20 = V.slice(-20).reduce((a, b) => a + b, 0) / Math.min(V.length, 20);
+        const todayV = V[V.length - 1] || avg20;
+        const ratio  = todayV / (avg20 || 1);
+        if      (ratio > 1.5 && changePct >  0) { vS = 15;  vR.push(`Volume ${ratio.toFixed(1)}x + ราคาขึ้น — CALL`); }
+        else if (ratio > 1.5 && changePct <= 0) { vS = -12; vR.push(`Volume ${ratio.toFixed(1)}x + ราคาลง — PUT`); }
+        else if (ratio < 0.6)                   { vS = 0;   vR.push(`Volume เบา ${ratio.toFixed(1)}x — สัญญาณไม่แน่นอน`); }
+        else                                    { vS = 5;   vR.push(`Volume ปกติ ${ratio.toFixed(1)}x`); }
+      } else if (V.length > 0) {
+        vS = 0; vR.push('Volume: ข้อมูลจำกัด — ไม่ประเมิน');
+      } else {
+        vS = 0; vR.push('ไม่มีข้อมูล Volume');
+      }
+      vS = Math.max(-15, Math.min(15, vS));
+
+      // === 6. CANDLE PATTERN  (max ±10) ===============================
+      let cS = 0; const cR = [];
+      if (C.length >= 2 && O.length >= 2 && H.length >= 2 && L.length >= 2) {
+        const c1 = C[C.length-1], o1 = O[O.length-1];
+        const h1 = H[H.length-1], l1 = L[L.length-1];
+        const c0 = C[C.length-2], o0 = O[O.length-2];
+        const body  = Math.abs(c1 - o1) || 0.001;
+        const upper = h1 - Math.max(c1, o1);
+        const lower = Math.min(c1, o1) - l1;
+        const doji  = body < (h1 - l1) * 0.1;
+        if      (lower > body * 2 && upper < body * 0.5 && c1 > o1)       { cS = 10;  cR.push('🔨 Hammer — กลับตัวขึ้น CALL'); }
+        else if (c1 > o1 && c0 < o0 && c1 > o0 && o1 < c0)               { cS = 10;  cR.push('🕯️ Bullish Engulfing — CALL Signal'); }
+        else if (upper > body * 2 && lower < body * 0.5 && c1 < o1)       { cS = -8;  cR.push('⭐ Shooting Star — ขาลง PUT'); }
+        else if (c1 < o1 && c0 > o0 && c1 < o0 && o1 > c0)               { cS = -8;  cR.push('🕯️ Bearish Engulfing — PUT Signal'); }
+        else if (lower > body * 2 && upper < body * 0.5 && c1 < o1)       { cS = 6;   cR.push('🔨 Inverted Hammer — อาจดีดกลับ'); }
+        else if (doji)                                                      { cS = 0;   cR.push('⚡ Doji — ลังเล รอดูทิศทาง'); }
+        else if (c1 > o1)                                                   { cS = 3;   cR.push('แท่งเขียว — บวกเล็กน้อย'); }
+        else                                                                { cS = -2;  cR.push('แท่งแดง — ลบเล็กน้อย'); }
+      } else {
+        cS = 0; cR.push('ข้อมูลแท่งเทียนไม่พอ');
+      }
+      cS = Math.max(-10, Math.min(10, cS));
+
+      // ================================================================
+      // === TOTAL → SIGNAL =============================================
+      const raw  = tS + eS + mS + srS + vS + cS; // range ≈ -80 to +80
+      const conf = Math.min(97, Math.max(44, Math.round((raw + 80) / 1.6)));
+      const signal = conf >= 65 ? 'CALL' : conf <= 44 ? 'PUT' : 'WAIT';
+
+      // === Entry / TP / SL via ATR ====================================
+      let entry, tp, sl;
+      if (atrV !== null && atrV > 0) {
+        const atr = atrV;
+        if (signal === 'CALL') {
+          const en1 = (price - atr * 0.25).toFixed(2);
+          const en2 = (price + atr * 0.25).toFixed(2);
+          entry = `${en1}–${en2}`;
+          tp    = `$${(price + atr * 1.5).toFixed(2)} / $${(price + atr * 3.0).toFixed(2)}`;
+          sl    = (price - atr * 1.5).toFixed(2);
+        } else if (signal === 'PUT') {
+          const en1 = (price - atr * 0.25).toFixed(2);
+          const en2 = (price + atr * 0.25).toFixed(2);
+          entry = `${en1}–${en2}`;
+          tp    = `$${(price - atr * 1.5).toFixed(2)} / $${(price - atr * 3.0).toFixed(2)}`;
+          sl    = (price + atr * 1.5).toFixed(2);
+        } else {
+          entry = `${(price - atr * 0.3).toFixed(2)}–${(price + atr * 0.3).toFixed(2)}`;
+          tp    = `$${(price + atr * 1.0).toFixed(2)} / $${(price - atr * 1.0).toFixed(2)}`;
+          sl    = (price - atr * 1.0).toFixed(2);
         }
-        return 100 - 100/(1+(g/(l||0.0001)));
-      }
-      function macdHist(arr) {
-        const f=ema(arr,12), s=ema(arr,26);
-        if(!f||!s) return 0;
-        return (f-s)*0.2; // simplified histogram
-      }
-      function stoch(c,h,l,n=14) {
-        if(c.length<n) return 50;
-        const sl=c.slice(-n),sh=h.slice(-n),sk=l.slice(-n);
-        return ((sl[sl.length-1]-Math.min(...sk))/(Math.max(...sh)-Math.min(...sk)||1))*100;
-      }
-
-      // Seeded fallback (when no candle data)
-      const seed = symbol.split('').reduce((a,b)=>a+b.charCodeAt(0),0) + price;
-      function rng(o) { const x=Math.sin(seed*o+o)*10000; return x-Math.floor(x); }
-
-      // === 1. TREND 20pts ===
-      let tS=0; const tR=[];
-      if(C.length>=5) {
-        const r5=C.slice(-5); let up=0,dn=0;
-        for(let i=1;i<r5.length;i++) r5[i]>r5[i-1]?up++:dn++;
-        if(up>=3){tS=20;tR.push('Higher High / Higher Low — ขาขึ้น');}
-        else if(dn>=3){tS=-10;tR.push('Lower High / Lower Low — ขาลง');}
-        else{tS=5;tR.push('Sideways — ยังไม่มีทิศทางชัด');}
-        if(changePct>1.5){tS+=5;tR.push(`Momentum วันนี้ +${changePct.toFixed(1)}%`);}
-        else if(changePct<-1.5){tS-=5;tR.push(`Momentum วันนี้ ${changePct.toFixed(1)}%`);}
       } else {
-        const d=rng(1.1);
-        if(d>0.6){tS=20;tR.push('Higher High / Higher Low — ขาขึ้น');}
-        else if(d<0.35){tS=-10;tR.push('Lower High / Lower Low — ขาลง');}
-        else{tS=5;tR.push('Sideways — ยังไม่มีทิศทางชัด');}
+        // Fallback: use fixed % (only when ATR unavailable, not random)
+        const sp = price * 0.012;
+        entry = `${(price - sp * 0.5).toFixed(2)}–${(price + sp * 0.5).toFixed(2)}`;
+        if      (signal === 'CALL') { tp = `$${(price*1.035).toFixed(2)} / $${(price*1.07).toFixed(2)}`; sl = (price*0.97).toFixed(2); }
+        else if (signal === 'PUT')  { tp = `$${(price*0.965).toFixed(2)} / $${(price*0.93).toFixed(2)}`; sl = (price*1.03).toFixed(2); }
+        else                        { tp = `$${(price*1.025).toFixed(2)} / $${(price*0.975).toFixed(2)}`; sl = (price*0.975).toFixed(2); }
       }
 
-      // === 2. EMA 20pts ===
-      let eS=0; const eR=[];
-      const e20 = C.length>=20 ? ema(C,20) : price*(0.95+rng(2.1)*0.08);
-      const e50 = C.length>=50 ? ema(C,50) : price*(0.90+rng(2.2)*0.10);
-      const e200= C.length>=200? ema(C,200): price*(0.82+rng(2.3)*0.16);
-      if(e20){if(price>e20){eS+=7;eR.push(`เหนือ EMA20 ($${e20.toFixed(2)})`);}else{eS-=5;eR.push(`หลุด EMA20 ($${e20.toFixed(2)})`);}}
-      if(e50){if(price>e50){eS+=7;eR.push(`เหนือ EMA50 ($${e50.toFixed(2)})`);}else{eS-=8;eR.push(`หลุด EMA50 ($${e50.toFixed(2)}) — สัญญาณลบ`);}}
-      if(e200){if(price>e200){eS+=6;eR.push('เหนือ EMA200 — ขาขึ้นระยะยาว');}else{eS-=10;eR.push('หลุด EMA200 — แนวโน้มระยะยาวลบ');}}
-      eS=Math.max(-20,Math.min(20,eS));
+      // Assemble extra indicator data for card display
+      const indicators = {
+        rsi:   rsiV   !== null ? rsiV.toFixed(1)                 : 'N/A',
+        macd:  macdR  !== null ? macdR.histogram.toFixed(3)       : 'N/A',
+        atr:   atrV   !== null ? atrV.toFixed(2)                  : 'N/A',
+        bbPos: bb     !== null ? ((price - bb.lower) / (bb.upper - bb.lower) * 100).toFixed(0) + '%' : 'N/A',
+        vol:   V.length >= 10  ? (() => {
+                 const avg = V.slice(-20).reduce((a,b)=>a+b,0)/Math.min(V.length,20);
+                 return (V[V.length-1]/avg).toFixed(2)+'x';
+               })() : 'N/A',
+        dataNote: limitedData ? `⚠️ ข้อมูลจำกัด (${C.length} วัน)` : null
+      };
 
-      // === 3. MOMENTUM 20pts ===
-      let mS=0; const mR=[];
-      const rsiV  = C.length>=15 ? rsi(C) : 30+rng(3.1)*45;
-      const macdH = C.length>=26 ? macdHist(C) : (rng(3.2)-0.5)*2;
-      const stochV= C.length>=14 ? stoch(C,H,L) : 20+rng(3.4)*65;
-      if(rsiV<30){mS+=10;mR.push(`RSI ${rsiV.toFixed(0)} — Oversold ดีซื้อ`);}
-      else if(rsiV>70){mS-=8;mR.push(`RSI ${rsiV.toFixed(0)} — Overbought ระวัง`);}
-      else if(rsiV>50){mS+=5;mR.push(`RSI ${rsiV.toFixed(0)} — ฝั่งบวก`);}
-      else{mS+=2;mR.push(`RSI ${rsiV.toFixed(0)} — เป็นกลาง`);}
-      if(macdH>0){mS+=6;mR.push('MACD Histogram บวก — Momentum ขึ้น');}
-      else{mS-=4;mR.push('MACD ตัดลง — Momentum อ่อน');}
-      if(stochV<20){mS+=4;mR.push(`Stochastic ${stochV.toFixed(0)} — Oversold`);}
-      else if(stochV>80){mS-=4;mR.push(`Stochastic ${stochV.toFixed(0)} — Overbought`);}
-      mS=Math.max(-20,Math.min(20,mS));
-
-      // === 4. S/R 15pts ===
-      let srS=0; const srR=[];
-      const sup = C.length>=20 ? Math.min(...C.slice(-20)) : price*(0.93+rng(4.1)*0.03);
-      const res = C.length>=20 ? Math.max(...C.slice(-20)) : price*(1.03+rng(4.2)*0.04);
-      if(price>=res*0.998){srS=15;srR.push(`ทะลุแนวต้าน $${res.toFixed(2)} — Breakout CALL`);}
-      else if(price<=sup*1.002){srS=-12;srR.push(`หลุดแนวรับ $${sup.toFixed(2)} — PUT Signal`);}
-      else if(Math.abs(price-sup)/price<0.015){srS=8;srR.push(`เด้งแนวรับ $${sup.toFixed(2)}`);}
-      else if(Math.abs(price-res)/price<0.015){srS=-5;srR.push(`ชนแนวต้าน $${res.toFixed(2)} — ระวัง`);}
-      else{srS=3;srR.push('อยู่ระหว่าง S/R — รอสัญญาณ');}
-      srS=Math.max(-15,Math.min(15,srS));
-
-      // === 5. VOLUME 15pts ===
-      let vS=0; const vR=[];
-      if(V.length>=10){
-        const avg=V.slice(-10).reduce((a,b)=>a+b,0)/10;
-        const today=V[V.length-1]||avg;
-        const ratio=today/avg;
-        if(ratio>1.5&&changePct>0){vS=15;vR.push(`Volume สูง ${ratio.toFixed(1)}x + ราคาขึ้น — CALL`);}
-        else if(ratio>1.5&&changePct<=0){vS=-12;vR.push(`Volume สูง ${ratio.toFixed(1)}x + ราคาลง — PUT`);}
-        else if(ratio<0.6){vS=0;vR.push('Volume เบา — สัญญาณไม่แน่นอน');}
-        else{vS=5;vR.push(`Volume ปกติ ${ratio.toFixed(1)}x`);}
-      } else {
-        const d=rng(5.1);
-        if(d>0.65){vS=15;vR.push('Volume สูงกว่าค่าเฉลี่ย + ราคาขึ้น');}
-        else if(d<0.3){vS=-10;vR.push('ลงแรง + Volume สูง — PUT Signal');}
-        else{vS=4;vR.push('Volume ปกติ');}
-      }
-      vS=Math.max(-15,Math.min(15,vS));
-
-      // === 6. CANDLE 10pts ===
-      let cS=0; const cR=[];
-      if(C.length>=2&&O.length>=2&&H.length>=2&&L.length>=2){
-        const c1=C[C.length-1],o1=O[O.length-1],h1=H[H.length-1],l1=L[L.length-1];
-        const c0=C[C.length-2],o0=O[O.length-2];
-        const body=Math.abs(c1-o1)||0.001;
-        const upper=h1-Math.max(c1,o1);
-        const lower=Math.min(c1,o1)-l1;
-        if(lower>body*2&&upper<body*0.5&&c1>o1){cS=10;cR.push('🔨 Hammer — กลับตัวขึ้น CALL');}
-        else if(c1>o1&&c0<o0&&c1>o0&&o1<c0){cS=10;cR.push('🕯️ Bullish Engulfing — CALL Signal');}
-        else if(upper>body*2&&lower<body*0.5&&c1<o1){cS=-8;cR.push('⭐ Shooting Star — ขาลง PUT');}
-        else if(c1<o1&&c0>o0&&c1<o0&&o1>c0){cS=-8;cR.push('🕯️ Bearish Engulfing — PUT Signal');}
-        else if(c1>o1){cS=3;cR.push('แท่งเขียว — บวกเล็กน้อย');}
-        else{cS=-2;cR.push('แท่งแดง — ลบเล็กน้อย');}
-      } else {
-        const d=rng(6.1);
-        if(d>0.65){cS=10;cR.push('🔨 Hammer — สัญญาณกลับตัวขึ้น');}
-        else if(d<0.28){cS=-8;cR.push('⭐ Shooting Star — สัญญาณขาลง');}
-        else{cS=3;cR.push('แท่งเขียว — Momentum บวกเล็กน้อย');}
-      }
-      cS=Math.max(-10,Math.min(10,cS));
-
-      // === TOTAL → SIGNAL ===
-      const raw = tS+eS+mS+srS+vS+cS; // range ≈ -80 to +80
-      const conf = Math.min(97,Math.max(44,Math.round((raw+80)/1.6)));
-      const signal = conf>=65?'CALL':conf<=44?'PUT':'WAIT';
-
-      // Entry / TP / SL
-      const sp = price*0.012;
-      const entry = `${(price-sp*0.5).toFixed(2)}–${(price+sp*0.5).toFixed(2)}`;
-      let tp, sl;
-      if(signal==='CALL'){tp=`$${(price*1.035).toFixed(2)} / $${(price*1.07).toFixed(2)}`;sl=(price*0.97).toFixed(2);}
-      else if(signal==='PUT'){tp=`$${(price*0.965).toFixed(2)} / $${(price*0.93).toFixed(2)}`;sl=(price*1.03).toFixed(2);}
-      else{tp=`$${(price*1.025).toFixed(2)} / $${(price*0.975).toFixed(2)}`;sl=(price*0.975).toFixed(2);}
-
-      const reasons=[...tR.slice(0,1),...eR.slice(0,2),...mR.slice(0,2),...srR.slice(0,1),...vR.slice(0,1),...cR.slice(0,1)];
+      const reasons = [
+        ...tR.slice(0,1), ...eR.slice(0,2),
+        ...mR.slice(0,2), ...srR.slice(0,1),
+        ...vR.slice(0,1), ...cR.slice(0,1)
+      ];
       return { symbol, price, changePct, signal, conf, reasons, entry, tp, sl,
-               scores:{trend:tS,ema:eS,mom:mS,sr:srS,vol:vS,candle:cS} };
+               scores: { trend:tS, ema:eS, mom:mS, sr:srS, vol:vS, candle:cS },
+               indicators, priceTarget };
     }
 
+    // ================================================================
+    //  CARD RENDERER
+    // ================================================================
     function oaiCard(r) {
-      const cls = r.signal.toLowerCase();
+      const cls   = r.signal.toLowerCase();
       const emoji = r.signal==='CALL'?'🚀':r.signal==='PUT'?'🔻':'⚠️';
-      const pct = r.changePct;
-      const pStr = `${pct>=0?'+':''}${pct.toFixed(2)}%`;
-      const pCol = pct>=0?'var(--green)':'var(--red)';
-      const div = document.createElement('div');
+      const pct   = r.changePct;
+      const pStr  = `${pct>=0?'+':''}${pct.toFixed(2)}%`;
+      const pCol  = pct>=0?'var(--green)':'var(--red)';
+      const div   = document.createElement('div');
       div.className = `oai-card ${cls}`;
 
       const reasonIcon = cls==='call'?'✅':cls==='put'?'🔴':'🟡';
-      const reasonsHtml = r.reasons.map(rx=>
+      const reasonsHtml = r.reasons.map(rx =>
         `<div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;line-height:1.5;">
           <span style="flex-shrink:0;">${reasonIcon}</span><span>${rx}</span>
         </div>`).join('');
 
-      const levelsHtml = r.signal!=='WAIT' ? `
+      const levelsHtml = r.signal !== 'WAIT' ? `
         <div class="oai-levels">
           <div>
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px;">Entry Zone</div>
@@ -7476,10 +7746,23 @@
           </div>
         </div>` : `<div style="padding:0 14px 12px;font-size:13px;color:var(--text-muted);">⚠️ รอสัญญาณชัดเจนก่อนเข้า — อย่าฝืน</div>`;
 
-      function chip(label,score,max){
-        const sg=score>0?'+':''; const cc=score>0?'var(--green)':score<0?'var(--red)':'var(--text-secondary)';
+      function chip(label, score) {
+        const sg = score > 0 ? '+' : '';
+        const cc = score > 0 ? 'var(--green)' : score < 0 ? 'var(--red)' : 'var(--text-secondary)';
         return `<div class="oai-score-chip"><div style="font-size:9px;color:var(--text-muted);">${label}</div><div style="font-weight:700;color:${cc};margin-top:2px;">${sg}${score}</div></div>`;
       }
+
+      // Indicator mini-row
+      const ind = r.indicators || {};
+      const indHtml = `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;">
+          ${ind.rsi!=='N/A'?`<span style="font-size:11px;background:rgba(255,255,255,0.05);border-radius:5px;padding:2px 7px;color:var(--text-secondary);">RSI <b style="color:var(--text-primary);">${ind.rsi}</b></span>`:''}
+          ${ind.macd!=='N/A'?`<span style="font-size:11px;background:rgba(255,255,255,0.05);border-radius:5px;padding:2px 7px;color:var(--text-secondary);">MACD <b style="color:${parseFloat(ind.macd)>=0?'var(--green)':'var(--red)'};">${ind.macd}</b></span>`:''}
+          ${ind.atr!=='N/A'?`<span style="font-size:11px;background:rgba(255,255,255,0.05);border-radius:5px;padding:2px 7px;color:var(--text-secondary);">ATR <b style="color:var(--text-primary);">$${ind.atr}</b></span>`:''}
+          ${ind.vol!=='N/A'?`<span style="font-size:11px;background:rgba(255,255,255,0.05);border-radius:5px;padding:2px 7px;color:var(--text-secondary);">Vol <b style="color:var(--teal);">${ind.vol}</b></span>`:''}
+          ${ind.bbPos!=='N/A'?`<span style="font-size:11px;background:rgba(255,255,255,0.05);border-radius:5px;padding:2px 7px;color:var(--text-secondary);">BB% <b style="color:var(--text-primary);">${ind.bbPos}</b></span>`:''}
+          ${ind.dataNote?`<span style="font-size:11px;color:var(--orange);">${ind.dataNote}</span>`:''}
+        </div>`;
 
       div.innerHTML = `
         <div style="padding:14px 14px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
@@ -7507,26 +7790,113 @@
 
         <div style="padding:0 14px 10px;">${reasonsHtml}</div>
 
+        ${indHtml}
+
         ${levelsHtml}
 
         <div class="oai-score-grid">
-          ${chip('Trend',r.scores.trend,20)}
-          ${chip('EMA',r.scores.ema,20)}
-          ${chip('Momentum',r.scores.mom,20)}
-          ${chip('S/R',r.scores.sr,15)}
-          ${chip('Volume',r.scores.vol,15)}
-          ${chip('Candle',r.scores.candle,10)}
-        </div>`;
+          ${chip('Trend',   r.scores.trend)}
+          ${chip('EMA',     r.scores.ema)}
+          ${chip('Momentum',r.scores.mom)}
+          ${chip('S/R',     r.scores.sr)}
+          ${chip('Volume',  r.scores.vol)}
+          ${chip('Candle',  r.scores.candle)}
+        </div>
+
+        ${oaiPriceTargetHtml(r.priceTarget, r.price)}`;
       return div;
     }
 
+    // ================================================================
+    //  ANALYST PRICE TARGET SECTION
+    // ================================================================
+    function oaiPriceTargetHtml(pt, currentPrice) {
+      if (!pt) return '';
+
+      // ── Consensus bar (strongBuy / buy / hold / sell / strongSell) ──
+      const total = pt.totalAnalysts || 0;
+      const bullish   = (pt.strongBuy  || 0) + (pt.buy  || 0);
+      const neutral   = pt.hold || 0;
+      const bearish   = (pt.strongSell || 0) + (pt.sell || 0);
+      const pBull = total ? Math.round(bullish / total * 100) : 0;
+      const pNeut = total ? Math.round(neutral / total * 100) : 0;
+      const pBear = total ? Math.round(bearish / total * 100) : 0;
+
+      // ── Consensus label ──
+      let consensusLabel = '–', consensusColor = 'var(--text-muted)';
+      if (total > 0) {
+        if      (pBull >= 70)                   { consensusLabel = 'Strong Buy';  consensusColor = '#00e676'; }
+        else if (pBull >= 50)                   { consensusLabel = 'Buy';         consensusColor = '#69f0ae'; }
+        else if (pNeut >= 50)                   { consensusLabel = 'Hold';        consensusColor = '#ffc107'; }
+        else if (pBear >= 50)                   { consensusLabel = 'Sell';        consensusColor = '#ff5252'; }
+        else if (pBear >= 70)                   { consensusLabel = 'Strong Sell'; consensusColor = '#ff1744'; }
+        else                                    { consensusLabel = 'Mixed';       consensusColor = '#90a4ae'; }
+      }
+
+      // ── Price target upside/downside ──
+      let uptxt = '', upcol = 'var(--text-muted)';
+      if (pt.mean && currentPrice > 0) {
+        const upside = ((pt.mean - currentPrice) / currentPrice * 100);
+        uptxt = `${upside >= 0 ? '+' : ''}${upside.toFixed(1)}%`;
+        upcol = upside >= 0 ? '#00e676' : '#ff4569';
+      }
+
+      const consensusBarHtml = total > 0 ? `
+        <div style="display:flex;height:6px;border-radius:4px;overflow:hidden;margin:6px 0 4px;">
+          <div style="width:${pBull}%;background:#00e676;"></div>
+          <div style="width:${pNeut}%;background:#ffc107;"></div>
+          <div style="width:${pBear}%;background:#ff4569;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:2px;">
+          <span style="color:#00e676;">Buy ${bullish}</span>
+          <span style="color:#ffc107;">Hold ${neutral}</span>
+          <span style="color:#ff4569;">Sell ${bearish}</span>
+        </div>` : '';
+
+      const meanHtml   = pt.mean   ? `<div class="oai-pt-col"><div class="oai-pt-lbl">Mean Target</div><div class="oai-pt-val" style="color:var(--gold);">$${pt.mean.toFixed(2)}</div></div>` : '';
+      const highHtml   = pt.high   ? `<div class="oai-pt-col"><div class="oai-pt-lbl">High</div><div class="oai-pt-val" style="color:#00e676;">$${pt.high.toFixed(2)}</div></div>` : '';
+      const lowHtml    = pt.low    ? `<div class="oai-pt-col"><div class="oai-pt-lbl">Low</div><div class="oai-pt-val" style="color:#ff4569;">$${pt.low.toFixed(2)}</div></div>` : '';
+      const medianHtml = pt.median ? `<div class="oai-pt-col"><div class="oai-pt-lbl">Median</div><div class="oai-pt-val" style="color:var(--teal);">$${pt.median.toFixed(2)}</div></div>` : '';
+
+      return `
+        <div class="oai-pt-box">
+          <div class="oai-pt-header">
+            <span>🎯 ราคาเป้าหมายนักวิเคราะห์</span>
+            ${total > 0 ? `<span style="font-size:10px;color:var(--text-muted);">${total} คน</span>` : ''}
+          </div>
+
+          ${(pt.mean || pt.high || pt.low || pt.median) ? `
+          <div class="oai-pt-grid">
+            ${meanHtml}${highHtml}${lowHtml}${medianHtml}
+          </div>
+          ` : ''}
+
+          ${uptxt ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 2px;font-size:12px;">
+            <span style="color:var(--text-muted);">Upside จากราคาปัจจุบัน</span>
+            <span style="font-weight:700;font-family:'Share Tech Mono',monospace;color:${upcol};">${uptxt}</span>
+          </div>` : ''}
+
+          ${total > 0 ? `
+          <div style="margin-top:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+              <span style="color:var(--text-muted);">Consensus</span>
+              <span style="font-weight:700;color:${consensusColor};">${consensusLabel}</span>
+            </div>
+            ${consensusBarHtml}
+          </div>` : '<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">ยังไม่มีข้อมูล Consensus</div>'}
+
+          ${pt.updated ? `<div style="font-size:10px;color:var(--text-muted);margin-top:5px;text-align:right;">อัปเดต ${pt.updated}</div>` : ''}
+        </div>`;
+    }
+
     function oaiSummary(results) {
-      const calls=results.filter(r=>r.signal==='CALL').length;
-      const puts =results.filter(r=>r.signal==='PUT').length;
-      const waits=results.filter(r=>r.signal==='WAIT').length;
-      const now=new Date();
-      const t=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-      document.getElementById('oaiSummaryBar').innerHTML=`
+      const calls = results.filter(r => r.signal==='CALL').length;
+      const puts  = results.filter(r => r.signal==='PUT').length;
+      const waits = results.filter(r => r.signal==='WAIT').length;
+      const now   = new Date();
+      const t = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      document.getElementById('oaiSummaryBar').innerHTML = `
         <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:7px 14px;font-size:13px;display:flex;align-items:center;gap:6px;">
           <b style="color:#00e676;">🚀 CALL</b> <b style="color:var(--text-primary);">${calls}</b>
         </div>
@@ -7536,7 +7906,9 @@
         <div style="background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);border-radius:8px;padding:7px 14px;font-size:13px;display:flex;align-items:center;gap:6px;">
           <b style="color:#ffc107;">⚠️ WAIT</b> <b style="color:var(--text-primary);">${waits}</b>
         </div>
-        <div style="margin-left:auto;font-size:12px;color:var(--text-muted);display:flex;align-items:center;">อัปเดต ${t}</div>`;
+        <div style="margin-left:auto;font-size:12px;color:var(--text-muted);display:flex;align-items:center;">
+          อัปเดต ${t} <span style="margin-left:8px;opacity:.5;font-size:10px;">🔄 auto 5m</span>
+        </div>`;
     }
     </script>
   </body>
