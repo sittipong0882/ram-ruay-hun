@@ -141,8 +141,8 @@ const FINNHUB = "https://finnhub.io/api/v1";
 
 ## 📞 สนับสนุน
 
-- **Email**: support@ruayhun.ai
-- **Line**: @ruayhunai
+- **Email**: sittipong@pbtc.ac.th
+- **Line**: sittipong0709
 
 ---
 
