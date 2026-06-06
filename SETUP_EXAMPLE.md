@@ -73,6 +73,8 @@ const API_KEY = "d7qrrb1r01qudmina8qgd7qrrb1r01qudmina8r0";
 const FINNHUB = "https://finnhub.io/api/v1";
 ```
 
+คีย์ api หมดอายุ 2027 มกราคม
+
 หากต้องการใช้คีย์ของตัวเอง ให้แก้ไขค่า `API_KEY` ใน `index.html`
 
 ## 4. ทดสอบการใช้งาน
